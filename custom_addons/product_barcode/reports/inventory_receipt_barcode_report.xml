@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <template id="report_inventory_barcode">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div style="text-align:center; margin:20px;">
+                    <h3><t t-esc="o.code_product"/></h3>
+                    <div style="margin-top:10px;">
+                        <img t-att-src="'/report/barcode/EAN13/%s' % (o.barcode or '')"
+                             style="width:300px;height:80px;"/>
+                    </div>
+                    <p><t t-esc="o.barcode"/></p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <report
+        id="action_report_inventory_barcode"
+        model="inventory.receipt.product.detail"
+        string="Product Barcode"
+        report_type="qweb-pdf"
+        name="product_barcode.report_inventory_barcode"
+        file="product_barcode.report_inventory_barcode"
+    />
+</odoo>

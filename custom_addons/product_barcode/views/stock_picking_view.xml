@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <record id="view_picking_form_add_detail_product" model="ir.ui.view">
+            <field name="name">stock.picking.form.add.detail.product</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='note']" position="after">
+                    <page string="Detail Product" name="detail_product_page" invisible="(picking_type_code != 'incoming') or ('Return of' in (origin or '')) or (state == 'draft')">
+                        <!-- Tombol Generate All Barcode -->
+                        <button name="action_generate_barcodes"
+                                string="Generate All Barcodes"
+                                type="object"
+                                class="btn-secondary"
+                                icon="fa-barcode"/>
+
+                        <field name="receipt_product_detail_line_ids" widget="one2many_list">
+                            <tree editable="bottom" create="1" delete="1">
+                                <field name="receipt_id"/>
+                                <field name="vendor_id"/>
+                                <field name="vendor_code"/>
+                                <field name="product_id"/>
+                                <field name="code_product"/>
+                                <field name="purchase_id"/>
+                                <field name="warehouse_id"/>
+                                <field name="delivery_id"/>
+                                <field name="unique_code"/>
+                                <field name="barcode"/>
+                                <button name="action_print_barcode"
+                                        string="Print Barcode"
+                                        type="object"
+                                        icon="fa-print"
+                                        context="{'active_model':'inventory.receipt.product.detail'}"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+</odoo>

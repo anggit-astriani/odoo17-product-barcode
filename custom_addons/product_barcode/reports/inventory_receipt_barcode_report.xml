@@ -1,27 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <odoo>
-    <template id="report_inventory_barcode">
-        <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
-                <div style="text-align:center; margin:20px;">
-                    <h3><t t-esc="o.code_product"/></h3>
-                    <div style="margin-top:10px;">
-                        <img t-att-src="'/report/barcode/EAN13/%s' % (o.barcode or '')"
-                             style="width:300px;height:80px;"/>
+    <data>
+        <!-- Template Definition -->
+        <template id="report_inventory_barcode_document">
+            <t t-call="web.basic_layout">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page">
+                        <div style="text-align:center; padding:40px;">
+                            <!-- Product Code Header -->
+                            <!-- <h2 style="margin-bottom:30px;">
+                                <t t-esc="o.code_product or 'No Code'"/>
+                            </h2> -->
+                            
+                            <!-- Barcode Image -->
+                            <div style="margin:30px auto;">
+                                <t t-if="o.barcode">
+                                    <!-- Try multiple barcode formats -->
+                                    <t t-set="barcode_url" t-value="'/report/barcode/EAN13/%s?width=600&amp;height=150&amp;humanreadable=1' % o.barcode"/>
+                                    <img t-att-src="barcode_url" 
+                                         style="max-width:500px; height:auto; border:1px solid #ccc; padding:10px;"
+                                         alt="Barcode"/>
+                                </t>
+                                <t t-else="">
+                                    <div style="border:2px dashed red; padding:20px; color:red;">
+                                        <p><strong>ERROR:</strong> Barcode field is empty!</p>
+                                        <p>Please generate barcode first</p>
+                                    </div>
+                                </t>
+                            </div>
+                            
+                            <!-- Barcode Text -->
+                            <!-- <p style="margin-top:20px; font-size:16px; font-weight:bold; letter-spacing:2px;">
+                                <t t-esc="o.barcode or 'NO BARCODE'"/>
+                            </p> -->
+                            
+                            <!-- Separator Line -->
+                            <!-- <hr style="margin:40px auto; width:80%; border-top:2px solid #333;"/> -->
+                            
+                            <!-- Product Details Table -->
+                            <!-- <table style="margin:20px auto; text-align:left; border-collapse:collapse; width:80%;">
+                                <tr>
+                                    <td style="padding:8px; font-weight:bold; width:40%;">Product:</td>
+                                    <td style="padding:8px;"><t t-esc="o.product_id.name or '-'"/></td>
+                                </tr>
+                                <tr style="background-color:#f5f5f5;">
+                                    <td style="padding:8px; font-weight:bold;">Product Code:</td>
+                                    <td style="padding:8px;"><t t-esc="o.code_product or '-'"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px; font-weight:bold;">Vendor:</td>
+                                    <td style="padding:8px;"><t t-esc="o.vendor_id.name or '-'"/></td>
+                                </tr>
+                                <tr style="background-color:#f5f5f5;">
+                                    <td style="padding:8px; font-weight:bold;">Vendor Code:</td>
+                                    <td style="padding:8px;"><t t-esc="o.vendor_code or '-'"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px; font-weight:bold;">Warehouse:</td>
+                                    <td style="padding:8px;"><t t-esc="o.warehouse_id.name or '-'"/></td>
+                                </tr>
+                                <tr style="background-color:#f5f5f5;">
+                                    <td style="padding:8px; font-weight:bold;">Unique Code:</td>
+                                    <td style="padding:8px;"><t t-esc="o.unique_code or '-'"/></td>
+                                </tr>
+                                <tr t-if="o.receipt_id">
+                                    <td style="padding:8px; font-weight:bold;">Receipt:</td>
+                                    <td style="padding:8px;"><t t-esc="o.receipt_id.name or '-'"/></td>
+                                </tr>
+                            </table> -->
+                        </div>
                     </div>
-                    <p><t t-esc="o.barcode"/></p>
-                </div>
+                </t>
             </t>
-        </t>
-    </template>
+        </template>
 
-    <report
-        id="action_report_inventory_barcode"
-        model="inventory.receipt.product.detail"
-        string="Product Barcode"
-        report_type="qweb-pdf"
-        name="product_barcode.report_inventory_barcode"
-        file="product_barcode.report_inventory_barcode"
-    />
+        <!-- Report Action Definition -->
+        <record id="action_report_inventory_barcode" model="ir.actions.report">
+            <field name="name">Product Barcode</field>
+            <field name="model">inventory.receipt.product.detail</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">product_barcode.report_inventory_barcode_document</field>
+            <field name="report_file">product_barcode.report_inventory_barcode_document</field>
+            <field name="binding_model_id" ref="model_inventory_receipt_product_detail"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="base.paperformat_us"/>
+        </record>
+    </data>
 </odoo>

@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 import uuid
+import random
 
 class InventoryReceiptProductDetail(models.Model):
     _name = 'inventory.receipt.product.detail'
@@ -88,8 +89,9 @@ class InventoryReceiptProductDetail(models.Model):
             partner = self.env['res.partner'].browse(vals['vendor_id'])
             vals['vendor_code'] = partner.ref
         
-         # generate unique_code (6 karakter)
-        unique_code = str(uuid.uuid4())[:6].upper()
+        # generate unique_code (6 karakter)
+        # unique_code = str(uuid.uuid4())[:6].upper()
+        unique_code = str(random.randint(100000, 999999))
         vals['unique_code'] = unique_code
 
         # gabungkan jadi barcode

@@ -9,11 +9,11 @@
                 <xpath expr="//page[@name='note']" position="after">
                     <page string="Detail Product" name="detail_product_page" invisible="(picking_type_code != 'incoming') or ('Return of' in (origin or '')) or (state == 'draft')">
                         <!-- Tombol Generate All Barcode -->
-                        <button name="action_generate_barcodes"
+                        <!-- <button name="action_generate_barcodes"
                                 string="Generate All Barcodes"
                                 type="object"
                                 class="btn-secondary"
-                                icon="fa-barcode"/>
+                                icon="fa-barcode"/> -->
 
                         <field name="receipt_product_detail_line_ids" widget="one2many_list">
                             <tree editable="bottom" create="1" delete="1">

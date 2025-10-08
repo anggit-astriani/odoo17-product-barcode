@@ -27,6 +27,7 @@
                                 <field name="delivery_id"/>
                                 <field name="unique_code"/>
                                 <field name="barcode"/>
+                                <field name="status_product"/>
                                 <button name="action_print_barcode"
                                         string="Print Barcode"
                                         type="object"

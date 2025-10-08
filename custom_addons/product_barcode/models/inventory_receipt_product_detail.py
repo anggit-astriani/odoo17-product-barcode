@@ -17,6 +17,7 @@ class InventoryReceiptProductDetail(models.Model):
     vendor_code = fields.Char(string='Vendor Code', compute='_compute_vendor_code', store=True)
     unique_code = fields.Char(string='Unique Code', readonly=True, copy=False)
     barcode = fields.Char(string='Barcode', readonly=True, copy=False)
+    status_product = fields.Selection([('waiting', 'Waiting'), ('available', 'Available'), ('sold', 'Sold')], string='Status', default='waiting', required=True)
 
 
     @api.onchange('receipt_id')

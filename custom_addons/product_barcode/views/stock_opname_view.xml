@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stock Opname Tree View -->
+    <record id="view_stock_opname_tree" model="ir.ui.view">
+        <field name="name">stock.opname.tree</field>
+        <field name="model">stock.opname</field>
+        <field name="arch" type="xml">
+            <tree string="Stock Opname">
+                <field name="name"/>
+                <field name="opname_date"/>
+                <field name="warehouse_id"/>
+                <field name="responsible_id"/>
+                <field name="total_scanned"/>
+                <field name="total_matched"/>
+                <field name="total_status_mismatch"/>
+                <field name="total_unmatched"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancel'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Stock Opname Form View -->
+    <record id="view_stock_opname_form" model="ir.ui.view">
+        <field name="name">stock.opname.form</field>
+        <field name="model">stock.opname</field>
+        <field name="arch" type="xml">
+            <form string="Stock Opname">
+                <header>
+                    <button name="action_start_opname" string="Start Opname"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_done" string="Submit"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object"
+                            invisible="state in ('done', 'cancel')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state not in ('done', 'cancel')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="warehouse_id" options="{'no_create': True}"
+                                   readonly="state != 'draft'"/>
+                            <field name="opname_date" readonly="state != 'draft'"/>
+                            <field name="responsible_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="total_scanned" readonly="1"/>
+                            <field name="total_matched" readonly="1"/>
+                            <field name="total_status_mismatch" readonly="1"/>
+                            <field name="total_unmatched" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Scanned Items" name="opname_lines">
+                            <field name="line_ids" readonly="state in ('done', 'cancel')">
+                                <tree string="Opname Lines" create="1" delete="1" editable="bottom"
+                                      decoration-success="match_status == 'matched'"
+                                      decoration-warning="match_status == 'status_mismatch'"
+                                      decoration-danger="match_status == 'unmatched'">
+                                    <field name="barcode"/>
+                                    <field name="code_product"/>
+                                    <field name="product_id"/>
+                                    <field name="warehouse_id"/>
+                                    <field name="product_condition"/>
+                                    <field name="information"/>
+                                    <field name="match_status" widget="badge"
+                                           decoration-success="match_status == 'matched'"
+                                           decoration-warning="match_status == 'status_mismatch'"
+                                           decoration-danger="match_status == 'unmatched'"/>
+                                    <field name="detail_product_status" optional="show"/>
+                                    <field name="match_remarks"/>
+                                    <field name="receipt_id"/>
+                                    <field name="vendor_id"/>
+                                    <field name="scanned_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Add notes here..."
+                                   readonly="state in ('done', 'cancel')"/>
+                        </page>
+                    </notebook>
+                </sheet>
+<!--                <div class="oe_chatter">-->
+<!--                    <field name="message_follower_ids"/>-->
+<!--                    <field name="message_ids"/>-->
+<!--                </div>-->
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Opname Search View -->
+    <record id="view_stock_opname_search" model="ir.ui.view">
+        <field name="name">stock.opname.search</field>
+        <field name="model">stock.opname</field>
+        <field name="arch" type="xml">
+            <search string="Stock Opname">
+                <field name="name"/>
+                <field name="warehouse_id"/>
+                <field name="responsible_id"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
+                <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Warehouse" name="warehouse" context="{'group_by':'warehouse_id'}"/>
+                    <filter string="Status" name="status" context="{'group_by':'state'}"/>
+                    <filter string="Responsible" name="responsible" context="{'group_by':'responsible_id'}"/>
+                    <filter string="Opname Date" name="opname_date" context="{'group_by':'opname_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Stock Opname Action -->
+    <record id="action_stock_opname" model="ir.actions.act_window">
+        <field name="name">Stock Opname</field>
+        <field name="res_model">stock.opname</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_stock_opname_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Stock Opname
+            </p>
+            <p>
+                Stock Opname helps you verify physical inventory against system records.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_stock_opname"
+              name="Stock Opname"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_stock_opname"
+              sequence="50"/>
+
+</odoo>

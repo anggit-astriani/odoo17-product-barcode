@@ -11,7 +11,9 @@
     'depends': ['web','base', 'product', 'account', 'purchase', 'stock'],
     'data': [
         'security/ir.model.access.csv',
+        'data/stock_opname_data.xml',
         'views/stock_picking_view.xml',
+        'views/stock_opname_view.xml',
         'reports/inventory_receipt_barcode_report.xml',
         'views/product_product_view.xml',
     ],

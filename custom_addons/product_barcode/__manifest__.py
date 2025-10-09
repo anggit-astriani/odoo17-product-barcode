@@ -13,6 +13,7 @@
         'security/ir.model.access.csv',
         'views/stock_picking_view.xml',
         'reports/inventory_receipt_barcode_report.xml',
+        'views/product_product_view.xml',
     ],
     'installable': True,
     'license': 'OEEL-1',

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="inherit_product_product_stock_tree_button_product" model="ir.ui.view">
+        <field name="name">inherit.product.product.stock.tree.button.product</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock.product_product_stock_tree"/>
+        <field name="arch" type="xml">
+            <!-- Sisipkan setelah button History -->
+            <xpath expr="//button[@name='396']" position="after">
+                <button name="action_open_available_products"
+                        string="Product"
+                        type="object"
+                        class="btn-link"
+                        icon="fa-info-circle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Tree View khusus untuk menampilkan data available product -->
+    <record id="view_inventory_receipt_product_detail_tree_available" model="ir.ui.view">
+        <field name="name">inventory.receipt.product.detail.tree.available</field>
+        <field name="model">inventory.receipt.product.detail</field>
+        <field name="arch" type="xml">
+            <tree string="Available Products" create="false" edit="false">
+                <field name="receipt_id"/>
+                <field name="code_product"/>
+                <field name="product_id"/>
+                <field name="purchase_id"/>
+                <field name="warehouse_id"/>
+                <field name="delivery_id"/>
+                <field name="vendor_id"/>
+                <field name="vendor_code"/>
+                <field name="unique_code"/>
+                <field name="barcode"/>
+                <field name="status_product"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

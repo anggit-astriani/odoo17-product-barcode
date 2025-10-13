@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PDF Report Template -->
+    <template id="report_stock_opname_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center">
+                            <h2>STOCK OPNAME REPORT</h2>
+                        </div>
+
+                        <br/>
+
+                        <!-- Opname Information -->
+                        <div class="row">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Opname Number:</strong></td>
+                                        <td><span t-field="o.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Warehouse:</strong></td>
+                                        <td><span t-field="o.warehouse_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Opname Date:</strong></td>
+                                        <td><span t-field="o.opname_date"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Responsible:</strong></td>
+                                        <td><span t-field="o.responsible_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td><span t-field="o.state" class="badge badge-info"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Notes:</strong></td>
+                                        <td><span t-field="o.notes"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <br/>
+
+                        <!-- Summary Section -->
+                        <t t-if="data.get('include_summary', True)">
+                            <h4>Summary</h4>
+                            <table class="table table-sm table-bordered">
+                                <tr>
+                                    <td><strong>Total Scanned</strong></td>
+                                    <td class="text-right"><span t-esc="o.total_scanned"/></td>
+                                </tr>
+                                <tr style="background-color: #d4edda;">
+                                    <td><strong>Total Matched</strong></td>
+                                    <td class="text-right"><span t-esc="o.total_matched"/></td>
+                                </tr>
+                                <tr style="background-color: #fff3cd;">
+                                    <td><strong>Total Status Mismatch</strong></td>
+                                    <td class="text-right"><span t-esc="o.total_status_mismatch"/></td>
+                                </tr>
+                                <tr style="background-color: #f8d7da;">
+                                    <td><strong>Total Unmatched</strong></td>
+                                    <td class="text-right"><span t-esc="o.total_unmatched"/></td>
+                                </tr>
+                            </table>
+                        </t>
+
+                        <br/>
+
+                        <!-- Detail Lines Section -->
+                        <t t-if="data.get('include_details', True)">
+                            <h4>Detail Items</h4>
+
+                            <t t-set="filter_match_status" t-value="data.get('filter_match_status', 'all')"/>
+                            <t t-set="filter_product_condition" t-value="data.get('filter_product_condition', 'all')"/>
+
+                            <t t-set="filtered_lines" t-value="o.line_ids"/>
+
+                            <!-- Apply filters -->
+                            <t t-if="filter_match_status != 'all'">
+                                <t t-set="filtered_lines" t-value="filtered_lines.filtered(lambda l: l.match_status == filter_match_status)"/>
+                            </t>
+                            <t t-if="filter_product_condition != 'all'">
+                                <t t-set="filtered_lines" t-value="filtered_lines.filtered(lambda l: l.product_condition == filter_product_condition)"/>
+                            </t>
+
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr style="background-color: #4472C4; color: white;">
+                                        <th class="text-center">No</th>
+                                        <th>Barcode</th>
+                                        <th>Product Code</th>
+                                        <th>Product Name</th>
+                                        <th>Condition</th>
+                                        <th>Match Status</th>
+                                        <th>System Status</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="line_no" t-value="1"/>
+                                    <tr t-foreach="filtered_lines" t-as="line"
+                                        t-att-style="'background-color: %s;' % ('#d4edda' if line.match_status == 'matched' else '#fff3cd' if line.match_status == 'status_mismatch' else '#f8d7da')">
+                                        <td class="text-center"><span t-esc="line_no"/></td>
+                                        <td><span t-field="line.barcode"/></td>
+                                        <td><span t-field="line.code_product"/></td>
+                                        <td><span t-field="line.product_id.name"/></td>
+                                        <td><span t-field="line.product_condition"/></td>
+                                        <td><span t-field="line.match_status"/></td>
+                                        <td><span t-field="line.detail_product_status"/></td>
+                                        <td><span t-field="line.match_remarks"/></td>
+                                        <t t-set="line_no" t-value="line_no + 1"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report Action Definition -->
+    <record id="action_report_stock_opname" model="ir.actions.report">
+        <field name="name">Stock Opname Report</field>
+        <field name="model">stock.opname</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">product_barcode.report_stock_opname_document</field>
+        <field name="report_file">product_barcode.report_stock_opname_document</field>
+        <field name="binding_model_id" ref="model_stock_opname"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+</odoo>

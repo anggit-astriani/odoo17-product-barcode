@@ -36,6 +36,10 @@
                     <button name="action_done" string="Submit"
                             type="object" class="oe_highlight"
                             invisible="state != 'in_progress'"/>
+                    <button name="action_open_export_wizard" string="Export"
+                            type="object" class="btn-primary"
+                            icon="fa-download"
+                            invisible="state != 'done'"/>
                     <button name="action_cancel" string="Cancel"
                             type="object"
                             invisible="state in ('done', 'cancel')"/>
@@ -96,10 +100,6 @@
                         </page>
                     </notebook>
                 </sheet>
-<!--                <div class="oe_chatter">-->
-<!--                    <field name="message_follower_ids"/>-->
-<!--                    <field name="message_ids"/>-->
-<!--                </div>-->
             </form>
         </field>
     </record>

@@ -121,7 +121,8 @@ class ApiStockOpname(http.Controller):
                                  http_status=400)
 
         created_lines = []
-        matched_count = status_mismatch_count = unmatched_count = 0
+        matched_count = 0
+        unmatched_count = 0
 
         for item in barcodes:
             barcode = item.get('barcode')
@@ -144,8 +145,6 @@ class ApiStockOpname(http.Controller):
 
             if line.match_status == 'matched':
                 matched_count += 1
-            elif line.match_status == 'status_mismatch':
-                status_mismatch_count += 1
             else:
                 unmatched_count += 1
 
@@ -166,7 +165,6 @@ class ApiStockOpname(http.Controller):
             "opname_number": opname.name,
             "scanned_count": len(created_lines),
             "matched_count": matched_count,
-            "status_mismatch_count": status_mismatch_count,
             "unmatched_count": unmatched_count,
             "items": created_lines
         }
@@ -210,7 +208,11 @@ class ApiStockOpname(http.Controller):
                                  errors={"exception": str(e)},
                                  http_status=500)
 
-        summary = {"matched": [], "status_mismatch": [], "unmatched": []}
+        summary = {
+            'matched': [],
+            'unmatched': []
+        }
+
         for line in opname.line_ids:
             item = {
                 'barcode': line.barcode,
@@ -228,7 +230,6 @@ class ApiStockOpname(http.Controller):
             "status": opname.state,
             "total_scanned": opname.total_scanned,
             "total_matched": opname.total_matched,
-            "total_status_mismatch": opname.total_status_mismatch,
             "total_unmatched": opname.total_unmatched,
             "summary": summary
         }
@@ -284,7 +285,6 @@ class ApiStockOpname(http.Controller):
             "notes": opname.notes,
             "total_scanned": opname.total_scanned,
             "total_matched": opname.total_matched,
-            "total_status_mismatch": opname.total_status_mismatch,
             "total_unmatched": opname.total_unmatched,
             "lines": lines
         }
@@ -318,7 +318,6 @@ class ApiStockOpname(http.Controller):
             'status': opname.state,
             'total_scanned': opname.total_scanned,
             'total_matched': opname.total_matched,
-            'total_status_mismatch': opname.total_status_mismatch,
             'total_unmatched': opname.total_unmatched
         } for opname in opnames]
 

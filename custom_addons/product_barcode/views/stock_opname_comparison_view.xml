@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Comparison Tree View - Unified Data with Comparison Columns -->
+    <record id="view_stock_opname_comparison_tree" model="ir.ui.view">
+        <field name="name">stock.opname.comparison.tree</field>
+        <field name="model">stock.opname.comparison</field>
+        <field name="arch" type="xml">
+            <tree string="Comparison View" create="0" delete="0" edit="0"
+                  decoration-success="comparison_status == 'perfect_match'"
+                  decoration-info="comparison_status == 'found_with_issue'"
+                  decoration-danger="comparison_status == 'missing'"
+                  decoration-warning="comparison_status == 'surplus'">
+
+                <!-- Common Data (Unified) -->
+                <field name="barcode" string="Barcode"/>
+                <field name="code_product" string="Product Code"/>
+                <field name="product_id" string="Product"/>
+                <field name="warehouse_id" string="Warehouse" optional="hide"/>
+                <field name="receipt_id" string="Receipt" optional="show"/>
+                <field name="vendor_id" string="Vendor" optional="show"/>
+
+                <!-- System vs Physical Comparison -->
+                <field name="system_status" string="System Status"/>
+                <field name="scanned_condition" string="Physical Condition"/>
+
+                <field name="system_date" string="System Date" optional="hide"/>
+                <field name="scanned_date" string="Scanned Date" optional="show"/>
+
+                <field name="scanned_information" string="Physical Info" optional="show"/>
+                <field name="scanned_match_remarks" string="Scan Remarks" optional="hide"/>
+
+                <!-- Comparison Result -->
+                <field name="comparison_status" string="Status" widget="badge"
+                       decoration-success="comparison_status == 'perfect_match'"
+                       decoration-info="comparison_status == 'found_with_issue'"
+                       decoration-danger="comparison_status == 'missing'"
+                       decoration-warning="comparison_status == 'surplus'"/>
+
+                <field name="discrepancy_notes" string="Discrepancy Notes"/>
+
+                <field name="is_scanned" invisible="1"/>
+                <field name="scanned_match_status" invisible="1"/>
+                <field name="opname_line_id" invisible="1"/>
+                <field name="detail_product_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Comparison Form View -->
+    <record id="view_stock_opname_comparison_form" model="ir.ui.view">
+        <field name="name">stock.opname.comparison.form</field>
+        <field name="model">stock.opname.comparison</field>
+        <field name="arch" type="xml">
+            <form string="Comparison Detail" create="0" delete="0">
+                <sheet>
+                    <group>
+                        <group string="Product Information">
+                            <field name="barcode" readonly="1"/>
+                            <field name="code_product" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="warehouse_id" readonly="1"/>
+                            <field name="receipt_id" readonly="1"/>
+                            <field name="vendor_id" readonly="1"/>
+                        </group>
+                        <group string="Comparison Status">
+                            <field name="comparison_status" readonly="1" widget="badge"/>
+                            <field name="is_scanned" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="System Data" name="system_data">
+                            <group>
+                                <group>
+                                    <field name="system_status" readonly="1"/>
+                                    <field name="system_date" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="detail_product_id" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Physical Data" name="physical_data">
+                            <group>
+                                <group>
+                                    <field name="scanned_condition" readonly="1"/>
+                                    <field name="scanned_match_status" readonly="1" widget="badge"/>
+                                    <field name="scanned_date" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="opname_line_id" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Details">
+                                <field name="scanned_information" readonly="1" nolabel="1"/>
+                                <field name="scanned_match_remarks" readonly="1" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <page string="Discrepancy Analysis" name="discrepancy">
+                            <field name="discrepancy_notes" readonly="1" nolabel="1"
+                                   widget="text" placeholder="No discrepancy notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View for Filtering -->
+    <record id="view_stock_opname_comparison_search" model="ir.ui.view">
+        <field name="name">stock.opname.comparison.search</field>
+        <field name="model">stock.opname.comparison</field>
+        <field name="arch" type="xml">
+            <search string="Comparison">
+                <field name="barcode"/>
+                <field name="code_product"/>
+                <field name="product_id"/>
+                <field name="vendor_id"/>
+
+                <filter string="Perfect Match" name="perfect_match"
+                        domain="[('comparison_status','=','perfect_match')]"/>
+                <filter string="Found (with issue)" name="found_issue"
+                        domain="[('comparison_status','=','found_with_issue')]"/>
+                <filter string="Missing" name="missing"
+                        domain="[('comparison_status','=','missing')]"/>
+                <filter string="Surplus" name="surplus"
+                        domain="[('comparison_status','=','surplus')]"/>
+
+                <separator/>
+                <filter string="Scanned" name="scanned"
+                        domain="[('is_scanned','=',True)]"/>
+                <filter string="Not Scanned" name="not_scanned"
+                        domain="[('is_scanned','=',False)]"/>
+
+                <separator/>
+                <filter string="Good Condition" name="good_condition"
+                        domain="[('scanned_condition','=','good')]"/>
+                <filter string="Damaged" name="damaged"
+                        domain="[('scanned_condition','=','damaged')]"/>
+                <filter string="Defect" name="defect"
+                        domain="[('scanned_condition','=','defect')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Comparison Status" name="status" context="{'group_by':'comparison_status'}"/>
+                    <filter string="System Status" name="system_status" context="{'group_by':'system_status'}"/>
+                    <filter string="Physical Condition" name="condition" context="{'group_by':'scanned_condition'}"/>
+                    <filter string="Product" name="product" context="{'group_by':'product_id'}"/>
+                    <filter string="Vendor" name="vendor" context="{'group_by':'vendor_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Add Enhanced Comparison Tab to Stock Opname Form -->
+    <record id="view_stock_opname_form_add_comparison" model="ir.ui.view">
+        <field name="name">stock.opname.form.add.comparison</field>
+        <field name="model">stock.opname</field>
+        <field name="inherit_id" ref="product_barcode.view_stock_opname_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Comparison Analysis" name="comparison_view"
+                      invisible="state == 'draft'">
+
+                    <!-- Statistics Dashboard -->
+                    <div class="row" style="margin-bottom: 20px;">
+                        <div class="col-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h3><field name="comparison_perfect_match" readonly="1"/></h3>
+                                    <p>✅ Perfect Match</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h3><field name="comparison_found_with_issue" readonly="1"/></h3>
+                                    <p>⚠️ Found (with issue)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h3><field name="comparison_missing" readonly="1"/></h3>
+                                    <p>❌ Missing</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body text-center">
+                                    <h3><field name="comparison_surplus" readonly="1"/></h3>
+                                    <p>🔍 Surplus</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div class="alert alert-info" role="alert">
+                        <h5><strong>📊 System vs Physical Comparison</strong></h5>
+                        <p>This view compares expected system data with actual physical count results.</p>
+                        <ul class="mb-2">
+                            <li><span class="badge badge-success">Perfect Match</span>: Item found, condition good, status matched</li>
+                            <li><span class="badge badge-info">Found (with issue)</span>: Item found but has condition/status issues</li>
+                            <li><span class="badge badge-danger">Missing</span>: Expected in system but not found during count</li>
+                            <li><span class="badge badge-warning">Surplus</span>: Found during count but not in system</li>
+                        </ul>
+                        <button name="action_generate_comparison"
+                                string="🔄 Generate Comparison Analysis"
+                                type="object"
+                                class="btn btn-primary"
+                                invisible="state not in ('in_progress', 'done')"/>
+                    </div>
+
+                    <!-- Comparison Data Table -->
+                    <field name="comparison_ids"
+                           widget="one2many"
+                           mode="tree"
+                           context="{'tree_view_ref': 'product_barcode.view_stock_opname_comparison_tree'}">
+                        <tree>
+                            <field name="barcode"/>
+                            <field name="product_id"/>
+                            <field name="comparison_status"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

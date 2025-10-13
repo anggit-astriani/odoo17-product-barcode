@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Scanned Items Comparison Tree View -->
+    <record id="view_stock_opname_line_comparison_tree" model="ir.ui.view">
+        <field name="name">stock.opname.line.comparison.tree</field>
+        <field name="model">stock.opname.line</field>
+        <field name="arch" type="xml">
+            <tree string="Scanned Items Comparison" create="1" delete="1" editable="bottom"
+                  decoration-success="match_status == 'matched'"
+                  decoration-danger="match_status == 'unmatched'">
+
+                <!-- System Data (Left Side) - Akan dicoret jika matched -->
+                <field name="detail_product_status" string="System Status"
+                       decoration-muted="match_status == 'matched'"
+                       optional="show"/>
+                <field name="code_product" string="Product Code (System)"
+                       decoration-muted="match_status == 'matched'"/>
+                <field name="product_id" string="Product (System)"
+                       decoration-muted="match_status == 'matched'"/>
+                <field name="warehouse_id" string="Warehouse (System)"
+                       decoration-muted="match_status == 'matched'"
+                       optional="hide"/>
+                <field name="receipt_id" string="Receipt (System)"
+                       decoration-muted="match_status == 'matched'"
+                       optional="show"/>
+                <field name="vendor_id" string="Vendor (System)"
+                       decoration-muted="match_status == 'matched'"
+                       optional="show"/>
+
+                <!-- Separator Column -->
+                <field name="separator" widget="char" readonly="1" class="text-center" string=""/>
+>
+
+                <!-- Scanned Data (Right Side) -->
+                <field name="barcode" string="Barcode (Scanned)"/>
+                <field name="product_condition" string="Condition (Scanned)"/>
+                <field name="information" string="Information (Scanned)" optional="show"/>
+                <field name="scanned_date" string="Scanned Date" optional="show"/>
+
+                <!-- Match Status -->
+                <field name="match_status" string="Match Status" widget="badge"
+                       decoration-success="match_status == 'matched'"
+                       decoration-danger="match_status == 'unmatched'"/>
+                <field name="match_remarks" string="Remarks"/>
+
+                <field name="detail_product_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Update Stock Opname Form to use new comparison view -->
+    <record id="view_stock_opname_form_update_scanned_view" model="ir.ui.view">
+        <field name="name">stock.opname.form.update.scanned.view</field>
+        <field name="model">stock.opname</field>
+        <field name="inherit_id" ref="product_barcode.view_stock_opname_form"/>
+        <field name="arch" type="xml">
+            <!-- Update total fields -->
+            <xpath expr="//field[@name='total_status_mismatch']" position="replace"/>
+
+            <!-- Update Scanned Items page -->
+            <xpath expr="//page[@name='opname_lines']" position="replace">
+                <page string="Scanned Items" name="opname_lines">
+                    <!-- Info Box -->
+                    <div class="alert alert-info" role="alert">
+                        <h5><strong>📱 System vs Scanned Comparison</strong></h5>
+                        <p>Left side shows system data, right side shows scanned data.</p>
+                        <ul class="mb-0">
+                            <li><span class="badge badge-success">Green (Matched)</span>: Barcode found in system with status 'available' - System data will appear dimmed/muted</li>
+                            <li><span class="badge badge-danger">Red (Unmatched)</span>: Barcode not found OR found but status is not 'available'</li>
+                        </ul>
+                    </div>
+
+                    <field name="line_ids" readonly="state in ('done', 'cancel')"
+                           context="{'tree_view_ref': 'product_barcode.view_stock_opname_line_comparison_tree'}">
+                        <tree string="Opname Lines" create="1" delete="1" editable="bottom"
+                              decoration-success="match_status == 'matched'"
+                              decoration-danger="match_status == 'unmatched'">
+                            <field name="barcode"/>
+                            <field name="code_product"/>
+                            <field name="product_id"/>
+                            <field name="product_condition"/>
+                            <field name="match_status" widget="badge"/>
+                            <field name="match_remarks"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

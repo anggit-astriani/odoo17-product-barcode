@@ -12,8 +12,12 @@
     'data': [
         'security/ir.model.access.csv',
         'data/stock_opname_data.xml',
+        'reports/stock_opname_report.xml',
         'views/stock_picking_view.xml',
         'views/stock_opname_view.xml',
+        'views/stock_opname_scanned_comparison_view.xml',
+        'views/stock_opname_comparison_view.xml',
+        'views/stock_opname_export_wizard_view.xml',
         'reports/inventory_receipt_barcode_report.xml',
         'views/product_product_view.xml',
     ],

@@ -68,6 +68,19 @@ class StockOpname(models.Model):
         """Reset to draft"""
         self.write({'state': 'draft'})
 
+    def action_open_export_wizard(self):
+        """Open export wizard"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Export Stock Opname',
+            'res_model': 'stock.opname.export.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_opname_id': self.id,
+            }
+        }
+
 
 class StockOpnameLine(models.Model):
     _name = 'stock.opname.line'

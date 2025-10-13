@@ -5,7 +5,7 @@
         <field name="model">product.product</field>
         <field name="inherit_id" ref="stock.product_product_stock_tree"/>
         <field name="arch" type="xml">
-            <!-- Cari button History dan tambahkan button Product setelahnya -->
+            <!-- Sisipkan setelah button History -->
             <xpath expr="//field[@name='outgoing_qty']" position="after">
                 <button name="action_open_available_products"
                         string="Product"

@@ -169,7 +169,7 @@
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center">
                                     <h3><field name="comparison_perfect_match" readonly="1"/></h3>
-                                    <p>✅ Perfect Match</p>
+                                    <p>Perfect Match</p>
                                 </div>
                             </div>
                         </div>
@@ -177,7 +177,7 @@
                             <div class="card bg-info text-white">
                                 <div class="card-body text-center">
                                     <h3><field name="comparison_found_with_issue" readonly="1"/></h3>
-                                    <p>⚠️ Found (with issue)</p>
+                                    <p>Found (with issue)</p>
                                 </div>
                             </div>
                         </div>
@@ -185,7 +185,7 @@
                             <div class="card bg-danger text-white">
                                 <div class="card-body text-center">
                                     <h3><field name="comparison_missing" readonly="1"/></h3>
-                                    <p>❌ Missing</p>
+                                    <p>Missing</p>
                                 </div>
                             </div>
                         </div>
@@ -193,7 +193,7 @@
                             <div class="card bg-warning text-dark">
                                 <div class="card-body text-center">
                                     <h3><field name="comparison_surplus" readonly="1"/></h3>
-                                    <p>🔍 Surplus</p>
+                                    <p>Surplus</p>
                                 </div>
                             </div>
                         </div>
@@ -201,7 +201,7 @@
 
                     <!-- Instructions -->
                     <div class="alert alert-info" role="alert">
-                        <h5><strong>📊 System vs Physical Comparison</strong></h5>
+                        <h5><strong>System vs Physical Comparison</strong></h5>
                         <p>This view compares expected system data with actual physical count results.</p>
                         <ul class="mb-2">
                             <li><span class="badge badge-success">Perfect Match</span>: Item found, condition good, status matched</li>
@@ -210,7 +210,7 @@
                             <li><span class="badge badge-warning">Surplus</span>: Found during count but not in system</li>
                         </ul>
                         <button name="action_generate_comparison"
-                                string="🔄 Generate Comparison Analysis"
+                                string="Generate Comparison Analysis"
                                 type="object"
                                 class="btn btn-primary"
                                 invisible="state not in ('in_progress', 'done')"/>

@@ -7,8 +7,6 @@ class StockOpnameComparison(models.Model):
     _rec_name = 'barcode'
     _order = 'comparison_status, code_product'
 
-    separator = fields.Char(string='Separator', compute='_compute_separator')
-
     opname_id = fields.Many2one('stock.opname', string='Stock Opname', required=True, ondelete='cascade')
 
     # Common Data (sama antara system dan scanned)
@@ -221,7 +219,3 @@ class StockOpname(models.Model):
                 'sticky': False,
             }
         }
-
-    def _compute_separator(self):
-        for rec in self:
-            rec.separator = '→'

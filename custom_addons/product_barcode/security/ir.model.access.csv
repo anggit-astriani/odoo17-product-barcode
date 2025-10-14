@@ -5,3 +5,5 @@ access_stock_opname_line,access_stock_opname_line,model_stock_opname_line,,1,1,1
 access_stock_opname,access_stock_opname,model_stock_opname,,1,1,1,1
 access_stock_opname_export_wizard,access_stock_opname_export_wizard,model_stock_opname_export_wizard,,1,1,1,1
 access_stock_opname_comparison,access_stock_opname_comparison,model_stock_opname_comparison,,1,1,1,1
+access_stock_opname_expected_line,access_stock_opname_expected_line,model_stock_opname_expected_line,,1,1,1,1
+access_inventory_opname_history,access_inventory_opname_history,model_inventory_opname_history,,1,1,1,1

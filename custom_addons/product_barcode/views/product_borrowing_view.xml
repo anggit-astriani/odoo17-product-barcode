@@ -49,16 +49,16 @@
                 </header>
 
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="action_print_borrowing_document" type="object"
-                                class="oe_stat_button" icon="fa-barcode"
-                                invisible="state == 'draft'">
-                            <div class="o_stat_info">
-                                <span class="o_stat_text">Borrowing</span>
-                                <span class="o_stat_text">Barcode</span>
-                            </div>
-                        </button>
-                    </div>
+<!--                    <div class="oe_button_box" name="button_box">-->
+<!--                        <button name="action_print_borrowing_document" type="object"-->
+<!--                                class="oe_stat_button" icon="fa-barcode"-->
+<!--                                invisible="state == 'draft'">-->
+<!--                            <div class="o_stat_info">-->
+<!--                                <span class="o_stat_text">Borrowing</span>-->
+<!--                                <span class="o_stat_text">Barcode</span>-->
+<!--                            </div>-->
+<!--                        </button>-->
+<!--                    </div>-->
 
                     <div class="oe_title">
                         <h1>

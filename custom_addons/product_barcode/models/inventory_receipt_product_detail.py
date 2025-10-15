@@ -17,8 +17,60 @@ class InventoryReceiptProductDetail(models.Model):
     vendor_code = fields.Char(string='Vendor Code', compute='_compute_vendor_code', store=True)
     unique_code = fields.Char(string='Unique Code', readonly=True, copy=False)
     barcode = fields.Char(string='Barcode', readonly=True, copy=False)
-    status_product = fields.Selection([('waiting', 'Waiting'), ('available', 'Available'), ('sold', 'Sold'), ('on_borrow', "Borrowed")], string='Status', default='waiting', required=True)
 
+    status_product = fields.Selection([
+        ('waiting', 'Waiting'),
+        ('available', 'Available'),
+        ('sold', 'Sold'),
+        ('on_borrow', 'Borrowed')
+    ], string='Status', default='waiting', required=True)
+
+    # Opname fields
+    last_opname_date = fields.Datetime('Last Opname Date', readonly=True)
+    last_opname_id = fields.Many2one('stock.opname', string='Last Opname', readonly=True)
+    last_physical_condition = fields.Selection([
+        ('good', 'Good'),
+        ('damaged', 'Damaged'),
+        ('missing_parts', 'Missing Parts'),
+        ('defect', 'Defect'),
+        ('not_checked', 'Not Checked')
+    ], string='Last Physical Condition', default='not_checked', readonly=True)
+    last_opname_notes = fields.Text('Last Opname Notes', readonly=True)
+    opname_count = fields.Integer('Opname Count', default=0, readonly=True)
+    opname_history_ids = fields.One2many('inventory.opname.history', 'detail_product_id', string='Opname History')
+
+    # Borrowing tracking fields
+    borrowing_line_ids = fields.One2many('product.borrowing.line', 'detail_product_id', string='Borrowing History')
+    # store=True sehingga perubahan status_product akan otomatis merecompute is_borrowed
+    current_borrowing_id = fields.Many2one(
+        'product.borrowing',
+        string='Current Borrowing',
+        compute='_compute_current_borrowing',
+        store=True,
+    )
+    is_borrowed = fields.Boolean(
+        'Is Borrowed',
+        compute='_compute_is_borrowed',
+        store=True,
+    )
+
+
+    @api.depends('borrowing_line_ids', 'borrowing_line_ids.return_status', 'borrowing_line_ids.borrowing_id.state')
+    def _compute_current_borrowing(self):
+        """
+        Cari borrowing terakhir (pending) yang berkaitan dengan detail product ini.
+        disimpan (store=True) sehingga view akan menampilkan tanpa perlu reload manual.
+        """
+        for rec in self:
+            current = rec.borrowing_line_ids.filtered(
+                lambda l: l.return_status == 'pending' and l.borrowing_id.state in ('borrowed', 'overdue', 'confirmed')
+            )
+            # sort descending by borrow_date (most recent)
+            if current:
+                current_sorted = current.sorted(key=lambda l: l.borrowing_id.borrow_date or fields.Datetime.now(), reverse=True)
+                rec.current_borrowing_id = current_sorted[0].borrowing_id.id
+            else:
+                rec.current_borrowing_id = False
 
     @api.onchange('receipt_id')
     def _onchange_receipt_id(self):

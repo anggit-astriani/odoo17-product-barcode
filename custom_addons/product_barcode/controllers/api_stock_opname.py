@@ -313,6 +313,7 @@ class ApiStockOpname(http.Controller):
             'id': opname.id,
             'opname_number': opname.name,
             'warehouse': opname.warehouse_id.name,
+            'notes': opname.notes,
             'opname_date': opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),
             'responsible': opname.responsible_id.name,
             'status': opname.state,
@@ -322,3 +323,11 @@ class ApiStockOpname(http.Controller):
         } for opname in opnames]
 
         return response_json(True, "Stock opname list retrieved successfully", data={"count": len(data), "items": data})
+
+    # @http.route('/api/opname/expected_product/list', type='http', auth='public', methods=['GET'], csrf=False)
+    # def get_opname_product_list(self, **params):
+    #     opname_id = params.get('opname_id')
+    #     warehouse_id = params.get('warehouse_id')
+    #     state = params.get('state')
+    #     domain = []
+    #     if opname_id:

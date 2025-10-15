@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1️⃣ Form View Utama -->
+    <record id="view_inventory_receipt_product_detail_form" model="ir.ui.view">
+        <field name="name">inventory.receipt.product.detail.form</field>
+        <field name="model">inventory.receipt.product.detail</field>
+        <field name="arch" type="xml">
+            <form string="Product Detail">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="barcode"/>
+                            <field name="code_product"/>
+                            <field name="product_id"/>
+                        </group>
+                        <group>
+                            <field name="warehouse_id"/>
+                            <field name="status_product"/>
+                            <field name="vendor_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2️⃣ Tree View Opname History -->
+    <record id="view_inventory_opname_history_tree" model="ir.ui.view">
+        <field name="name">inventory.opname.history.tree</field>
+        <field name="model">inventory.opname.history</field>
+        <field name="arch" type="xml">
+            <tree string="Opname History" create="0" delete="0" edit="0"
+                  decoration-success="physical_condition == 'good'"
+                  decoration-warning="physical_condition in ('damaged', 'missing_parts')"
+                  decoration-danger="physical_condition in ('defect', 'missing')">
+                <field name="opname_date"/>
+                <field name="opname_id"/>
+                <field name="barcode"/>
+                <field name="product_id"/>
+                <field name="warehouse_id"/>
+                <field name="physical_condition" widget="badge"/>
+                <field name="match_status" widget="badge"/>
+                <field name="was_scanned" string="Scanned?"/>
+                <field name="notes"/>
+                <field name="scanned_by"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- 3️⃣ Inherit Form View untuk Tambahkan Tab Opname -->
+    <record id="view_inventory_receipt_product_detail_form_opname" model="ir.ui.view">
+        <field name="name">inventory.receipt.product.detail.form.opname</field>
+        <field name="model">inventory.receipt.product.detail</field>
+        <field name="inherit_id" ref="product_barcode.view_inventory_receipt_product_detail_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Opname History" name="opname_history">
+                        <group>
+                            <group string="Last Opname Info">
+                                <field name="last_opname_date" readonly="1"/>
+                                <field name="last_opname_id" readonly="1"/>
+                                <field name="last_physical_condition" readonly="1" widget="badge"/>
+                                <field name="opname_count" readonly="1"/>
+                            </group>
+                            <group string="Last Physical Status">
+                                <field name="last_opname_notes" readonly="1" nolabel="1"
+                                       placeholder="No opname notes available"/>
+                            </group>
+                        </group>
+
+                        <field name="opname_history_ids" readonly="1">
+                            <tree>
+                                <field name="opname_date"/>
+                                <field name="opname_id"/>
+                                <field name="physical_condition"/>
+                                <field name="match_status"/>
+                                <field name="was_scanned"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

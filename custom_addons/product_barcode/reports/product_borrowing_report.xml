@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Borrowing Document Report Template -->
+    <template id="report_product_borrowing_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center">
+                            <h2>PRODUCT BORROWING DOCUMENT</h2>
+                        </div>
+
+                        <br/>
+
+                        <!-- Borrowing Barcode -->
+                        <div class="text-center" style="margin-bottom: 20px;">
+                            <t t-if="o.borrowing_barcode">
+                                <img t-att-src="'/report/barcode/?type=Code128&amp;value=%s&amp;width=600&amp;height=100&amp;humanreadable=1' % o.borrowing_barcode"
+                                     style="max-width:400px; height:auto;"/>
+                            </t>
+                        </div>
+
+                        <!-- Borrowing Information -->
+                        <div class="row">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Borrowing Number:</strong></td>
+                                        <td><span t-field="o.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Borrow Date:</strong></td>
+                                        <td><span t-field="o.borrow_date"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Due Date:</strong></td>
+                                        <td><span t-field="o.due_date"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Duration:</strong></td>
+                                        <td><span t-esc="o.duration_days"/> days</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Warehouse:</strong></td>
+                                        <td><span t-field="o.warehouse_id.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Borrower Name:</strong></td>
+                                        <td><span t-field="o.borrower_name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>ID Number:</strong></td>
+                                        <td><span t-field="o.borrower_id_number"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Phone:</strong></td>
+                                        <td><span t-field="o.borrower_phone"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Email:</strong></td>
+                                        <td><span t-field="o.borrower_email"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Department:</strong></td>
+                                        <td><span t-field="o.borrower_department"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <br/>
+
+                        <!-- Purpose -->
+                        <div class="row">
+                            <div class="col-12">
+                                <strong>Purpose/Reason:</strong>
+                                <p><span t-field="o.purpose"/></p>
+                            </div>
+                        </div>
+
+                        <br/>
+
+                        <!-- Borrowed Products -->
+                        <h4>Borrowed Products</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead style="background-color: #4472C4; color: white;">
+                                <tr>
+                                    <th class="text-center">No</th>
+                                    <th>Barcode</th>
+                                    <th>Product Code</th>
+                                    <th>Product Name</th>
+                                    <th>Condition</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="line_no" t-value="1"/>
+                                <tr t-foreach="o.line_ids" t-as="line">
+                                    <td class="text-center"><span t-esc="line_no"/></td>
+                                    <td><span t-field="line.barcode"/></td>
+                                    <td><span t-field="line.code_product"/></td>
+                                    <td><span t-field="line.product_id.name"/></td>
+                                    <td><span t-field="line.borrow_condition"/></td>
+                                    <td><span t-field="line.borrow_notes"/></td>
+                                    <t t-set="line_no" t-value="line_no + 1"/>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <br/>
+                        <br/>
+
+                        <!-- Signatures -->
+                        <div class="row" style="margin-top: 50px;">
+                            <div class="col-6 text-center">
+                                <p>Borrower</p>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <p>_______________________</p>
+                                <p><span t-field="o.borrower_name"/></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p>Authorized By</p>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <p>_______________________</p>
+                                <p><span t-field="o.responsible_id.name"/></p>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px;">
+                            <small>
+                                <strong>Terms and Conditions:</strong><br/>
+                                1. The borrower is responsible for the borrowed items during the loan period.<br/>
+                                2. Items must be returned on or before the due date in the same condition.<br/>
+                                3. Any damage or loss must be reported immediately and may incur charges.<br/>
+                                4. Late returns may be subject to penalties.<br/>
+                                5. The borrower agrees to the terms stated in this document.
+                            </small>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report Action Definition -->
+    <record id="action_report_product_borrowing" model="ir.actions.report">
+        <field name="name">Borrowing Document</field>
+        <field name="model">product.borrowing</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">product_barcode.report_product_borrowing_document</field>
+        <field name="report_file">product_barcode.report_product_borrowing_document</field>
+        <field name="binding_model_id" ref="model_product_borrowing"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+</odoo>

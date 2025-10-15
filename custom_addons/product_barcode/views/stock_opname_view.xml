@@ -10,8 +10,10 @@
                 <field name="opname_date"/>
                 <field name="warehouse_id"/>
                 <field name="responsible_id"/>
+                <field name="total_expected"/>
                 <field name="total_scanned"/>
                 <field name="total_matched"/>
+                <field name="total_status_mismatch"/>
                 <field name="total_unmatched"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
@@ -54,6 +56,35 @@
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row" style="margin-bottom: 15px;">
+                        <div class="col-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0"><field name="total_expected" readonly="1"/></h4>
+                                    <small>Expected (System)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0"><field name="total_scanned" readonly="1"/></h4>
+                                    <small>Scanned (Physical)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0"><field name="total_matched" readonly="1"/></h4>
+                                    <small>Matched</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <group>
                         <group>
                             <field name="warehouse_id" options="{'no_create': True}"
@@ -62,34 +93,73 @@
                             <field name="responsible_id" options="{'no_create': True}"/>
                         </group>
                         <group>
-                            <field name="total_scanned" readonly="1"/>
                             <field name="total_matched" readonly="1"/>
+                            <field name="total_status_mismatch" readonly="1"/>
                             <field name="total_unmatched" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Scanned Items" name="opname_lines">
-                            <field name="line_ids" readonly="state in ('done', 'cancel')">
-                                <tree string="Opname Lines" create="1" delete="1" editable="bottom"
-                                      decoration-success="match_status == 'matched'"
-                                      decoration-danger="match_status in ('unmatched', 'status_mismatch')">
+                        <!-- Tab 1: Expected Items (System Data) -->
+                        <page string="Expected Items (System)" name="expected_items">
+                            <div class="alert alert-info" role="alert">
+                                <strong>Expected Items from System</strong><br/>
+                                These are items currently registered in the system with status "Available".<br/>
+                                Items marked as "Scanned" have been verified during physical count.
+                            </div>
+
+                            <field name="expected_line_ids" readonly="state in ('done', 'cancel')">
+                                <tree string="Expected Items" create="0" delete="0" editable="bottom"
+                                      decoration-success="is_scanned == True"
+                                      decoration-muted="is_scanned == False">
+                                    <field name="is_scanned" string="✓" widget="boolean_toggle" readonly="1"/>
                                     <field name="barcode"/>
                                     <field name="code_product"/>
                                     <field name="product_id"/>
-                                    <field name="warehouse_id"/>
+                                    <field name="warehouse_id" optional="hide"/>
+                                    <field name="receipt_id" optional="show"/>
+                                    <field name="vendor_id"/>
+                                    <field name="vendor_code" optional="hide"/>
+                                    <field name="system_status" string="Status"/>
+                                    <field name="product_condition" optional="hide"/>
+                                    <field name="information" optional="hide"/>
+                                    <field name="match_remarks" optional="hide"/>
+                                    <field name="last_updated" string="Last Updated" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Tab 2: Scanned Items (Physical Data) -->
+                        <page string="Scanned Items (Physical)" name="scanned_items">
+                            <div class="alert alert-success" role="alert">
+                                <strong>Scanned Items from Physical Count</strong><br/>
+                                These are items that have been scanned during the physical count.<br/>
+                                Match status indicates whether the item is found in the system.
+                            </div>
+
+                            <field name="line_ids" readonly="state in ('done', 'cancel')">
+                                <tree string="Scanned Items" create="1" delete="1" editable="bottom"
+                                      decoration-success="match_status == 'matched'"
+                                      decoration-warning="match_status == 'status_mismatch'"
+                                      decoration-danger="match_status == 'unmatched'">
+                                    <field name="barcode"/>
+                                    <field name="code_product"/>
+                                    <field name="product_id"/>
+                                    <field name="warehouse_id" optional="hide"/>
+                                    <field name="receipt_id" optional="show"/>
+                                    <field name="vendor_id"/>
                                     <field name="product_condition"/>
                                     <field name="information"/>
                                     <field name="match_status" widget="badge"
                                            decoration-success="match_status == 'matched'"
-                                           decoration-danger="match_status in ('unmatched', 'status_mismatch')"/>
-                                    <field name="detail_product_status" optional="show"/>
+                                           decoration-warning="match_status == 'status_mismatch'"
+                                           decoration-danger="match_status == 'unmatched'"/>
+                                    <field name="detail_product_status" string="System Status" optional="show"/>
                                     <field name="match_remarks"/>
-                                    <field name="receipt_id"/>
-                                    <field name="vendor_id"/>
-                                    <field name="scanned_date"/>
+                                    <field name="scanned_date" string="Scan Date"/>
                                 </tree>
                             </field>
                         </page>
+
                         <page string="Notes" name="notes">
                             <field name="notes" placeholder="Add notes here..."
                                    readonly="state in ('done', 'cancel')"/>
@@ -100,7 +170,7 @@
         </field>
     </record>
 
-    <!-- Stock Opname Search View -->
+    <!-- Search View -->
     <record id="view_stock_opname_search" model="ir.ui.view">
         <field name="name">stock.opname.search</field>
         <field name="model">stock.opname</field>
@@ -122,7 +192,7 @@
         </field>
     </record>
 
-    <!-- Stock Opname Action -->
+    <!-- Action -->
     <record id="action_stock_opname" model="ir.actions.act_window">
         <field name="name">Stock Opname</field>
         <field name="res_model">stock.opname</field>

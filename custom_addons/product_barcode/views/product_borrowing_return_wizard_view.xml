@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Return Wizard Form View -->
+    <record id="view_product_borrowing_return_wizard_form" model="ir.ui.view">
+        <field name="name">product.borrowing.return.wizard.form</field>
+        <field name="model">product.borrowing.return.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Return Products">
+                <group>
+                    <group>
+                        <field name="borrowing_id" readonly="1"/>
+                        <field name="return_date"/>
+                    </group>
+                </group>
+
+                <group string="Items to Return">
+                    <field name="line_ids" nolabel="1">
+                        <tree string="Return Items" editable="bottom">
+                            <field name="to_return" widget="boolean_toggle"/>
+                            <field name="barcode" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="return_condition"/>
+                            <field name="return_notes"/>
+                            <field name="borrowing_line_id" invisible="1"/>
+                        </tree>
+                    </field>
+                </group>
+
+                <group string="Return Notes">
+                    <field name="notes" nolabel="1" placeholder="Add general return notes (applies to all returned items)..."/>
+                </group>
+
+                <footer>
+                    <button string="Process Return" name="action_process_return" type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for Return Wizard -->
+    <record id="action_product_borrowing_return_wizard" model="ir.actions.act_window">
+        <field name="name">Return Products</field>
+        <field name="res_model">product.borrowing.return.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

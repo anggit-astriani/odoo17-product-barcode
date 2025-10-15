@@ -4,3 +4,5 @@ from . import product_product
 from . import stock_opname
 from . import stock_opname_export_wizard
 from . import stock_opname_comparison
+from . import product_borrowing
+from . import product_borrowing_return_wizard

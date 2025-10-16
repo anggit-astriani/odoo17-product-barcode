@@ -14,6 +14,7 @@ class ProductBorrowing(models.Model):
 
     name = fields.Char('Borrowing Number', required=True, copy=False, readonly=True, default='New')
 
+    # Borrower Info
     borrower_name = fields.Char('Borrower Name', required=True, tracking=True)
     borrower_phone = fields.Char('Phone Number', tracking=True)
     borrower_email = fields.Char('Email', tracking=True)
@@ -21,6 +22,7 @@ class ProductBorrowing(models.Model):
     borrower_department = fields.Char('Department/Company')
     borrower_address = fields.Text('Address')
 
+    # Borrowing Details
     borrow_date = fields.Datetime('Borrow Date', default=fields.Datetime.now, required=True, tracking=True)
     due_date = fields.Datetime('Due Date', required=True, tracking=True)
     actual_return_date = fields.Datetime('Actual Return Date', readonly=True, tracking=True)
@@ -29,8 +31,10 @@ class ProductBorrowing(models.Model):
     purpose = fields.Text('Purpose/Reason', required=True, tracking=True)
     notes = fields.Text('Notes')
 
+    # Product Lines
     line_ids = fields.One2many('product.borrowing.line', 'borrowing_id', string='Borrowed Products')
 
+    # Status
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
@@ -41,7 +45,6 @@ class ProductBorrowing(models.Model):
     ], string='Status', default='draft', required=True, tracking=True)
 
     borrowing_barcode = fields.Char('Borrowing Barcode', readonly=True, copy=False)
-
     responsible_id = fields.Many2one('res.users', string='Responsible', default=lambda self: self.env.user, tracking=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
 
@@ -50,14 +53,11 @@ class ProductBorrowing(models.Model):
     total_pending = fields.Integer('Pending Items', compute='_compute_totals', store=True)
     is_overdue = fields.Boolean('Is Overdue', compute='_compute_is_overdue', store=True)
 
+    # ===== COMPUTE FIELDS =====
     @api.depends('borrow_date', 'due_date')
     def _compute_duration(self):
         for rec in self:
-            if rec.borrow_date and rec.due_date:
-                delta = rec.due_date - rec.borrow_date
-                rec.duration_days = delta.days
-            else:
-                rec.duration_days = 0
+            rec.duration_days = (rec.due_date - rec.borrow_date).days if rec.borrow_date and rec.due_date else 0
 
     @api.depends('line_ids', 'line_ids.return_status')
     def _compute_totals(self):
@@ -72,6 +72,7 @@ class ProductBorrowing(models.Model):
         for rec in self:
             rec.is_overdue = (rec.state == 'borrowed' and rec.due_date and rec.due_date < now)
 
+    # ===== CREATE =====
     @api.model
     def create(self, vals):
         if vals.get('name', 'New') == 'New':
@@ -93,58 +94,83 @@ class ProductBorrowing(models.Model):
             if rec.due_date and rec.borrow_date and rec.due_date <= rec.borrow_date:
                 raise ValidationError('Due date must be after borrow date!')
 
+    # ===== ACTIONS =====
     def action_confirm(self):
         self.write({'state': 'confirmed'})
 
     def action_borrow(self):
-        """Mark as borrowed and update product status"""
+        """Mark as borrowed, update product status, and reduce stock"""
+        StockQuant = self.env['stock.quant']
+
         for rec in self:
             if not rec.line_ids:
                 raise UserError('Please add at least one product to borrow!')
 
-            # Validate all products are available
+            # 1️⃣ Check all products availability
             unavailable_products = []
             for line in rec.line_ids:
                 if not line.detail_product_id:
-                    unavailable_products.append(f"{line.code_product} (No detail product linked)")
-                else:
-                    # baca lewat sudo untuk memastikan akses
-                    if line.detail_product_id.sudo().status_product != 'available':
-                        unavailable_products.append(
-                            f"{line.code_product} (Current Status: {line.detail_product_id.sudo().status_product})"
-                        )
+                    unavailable_products.append(f"{line.code_product} (No linked product detail)")
+                elif line.detail_product_id.sudo().status_product != 'available':
+                    unavailable_products.append(
+                        f"{line.code_product} (Current: {line.detail_product_id.sudo().status_product})"
+                    )
 
             if unavailable_products:
                 raise UserError(
-                    "Cannot borrow! Following products are not available:\n" + "\n".join(unavailable_products)
+                    "Cannot borrow! The following products are not available:\n" + "\n".join(unavailable_products)
                 )
 
-            # Update status produk jadi "on_borrow"
+            # 2️⃣ Update status_product & reduce stock
             for line in rec.line_ids:
-                if line.detail_product_id:
-                    detail = line.detail_product_id.sudo()
-                    try:
-                        detail.write({'status_product': 'on_borrow'})
-                        _logger.info("Product %s status set to on_borrow", detail.barcode or detail.id)
-                    except Exception as e:
-                        _logger.exception("Failed to update status for detail %s: %s", detail.id, e)
-                        raise UserError(f"Failed to update product status: {str(e)}")
+                detail = line.detail_product_id.sudo()
+                product = detail.product_id
+                warehouse = detail.warehouse_id or rec.warehouse_id
+                location = warehouse.lot_stock_id if warehouse else False
 
-            # Ubah state borrowing
+                # Update status
+                detail.write({'status_product': 'on_borrow'})
+                _logger.info(f"Product {product.display_name} marked as on_borrow.")
+
+                # Reduce stock
+                if product and location:
+                    quant = StockQuant.search([
+                        ('product_id', '=', product.id),
+                        ('location_id', '=', location.id)
+                    ], limit=1)
+                    if quant:
+                        if quant.quantity <= 0:
+                            raise UserError(f"Cannot borrow {product.display_name}, stock is 0.")
+                        new_qty = quant.quantity - 1
+                        quant.sudo().write({'quantity': new_qty})
+                        _logger.info(f"Stock reduced: {product.display_name} -> {new_qty} units left in {warehouse.name}")
+                    else:
+                        _logger.warning(f"No stock quant found for {product.display_name} in {warehouse.name}")
+
+            # 3️⃣ Set state borrowed
             rec.write({'state': 'borrowed'})
-
-            # Post message
-            rec.message_post(body=f"Borrowing confirmed. {len(rec.line_ids)} items marked as borrowed.",
-                             message_type='notification')
+            rec.message_post(
+                body=f"{len(rec.line_ids)} items borrowed and stock updated.",
+                message_type='notification'
+            )
 
     def action_return(self):
+        """Open return wizard (modal) and auto-fill pending items."""
+        self.ensure_one()
+
+        # pastikan masih ada yang belum dikembalikan
+        if not self.line_ids.filtered(lambda l: l.return_status in ('pending', 'partial')):
+            raise UserError('All products have been returned!')
+
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Return Products',
+            'name': 'Return Borrowed Products',
             'res_model': 'product.borrowing.return.wizard',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_borrowing_id': self.id}
+            'context': {
+                'default_borrowing_id': self.id,  # penting agar default_get bekerja
+            }
         }
 
     def action_cancel(self):
@@ -185,7 +211,6 @@ class ProductBorrowingLine(models.Model):
         ('minor_damage', 'Minor Damage'),
         ('damaged', 'Damaged')
     ], string='Condition When Borrowed', default='good', required=True)
-
     borrow_notes = fields.Text('Borrow Notes')
 
     return_status = fields.Selection([
@@ -203,7 +228,6 @@ class ProductBorrowingLine(models.Model):
         ('damaged', 'Damaged'),
         ('lost', 'Lost')
     ], string='Condition When Returned')
-
     return_notes = fields.Text('Return Notes')
 
     @api.onchange('barcode')
@@ -230,7 +254,6 @@ class ProductBorrowingLine(models.Model):
 
     @api.model
     def create(self, vals):
-        # Auto-fill detail_product_id from barcode if not provided
         if not vals.get('detail_product_id') and vals.get('barcode'):
             detail = self.env['inventory.receipt.product.detail'].search([('barcode', '=', vals['barcode'])], limit=1)
             if detail:

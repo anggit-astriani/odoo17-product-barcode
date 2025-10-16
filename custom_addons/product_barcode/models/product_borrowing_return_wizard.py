@@ -1,35 +1,48 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class ProductBorrowingReturnWizard(models.TransientModel):
     _name = 'product.borrowing.return.wizard'
-    _description = 'Product Borrowing Return Wizard'
+    _description = 'Borrowing Return Wizard'
 
     borrowing_id = fields.Many2one('product.borrowing', string='Borrowing', required=True, readonly=True)
     return_date = fields.Datetime('Return Date', default=fields.Datetime.now, required=True)
-    line_ids = fields.One2many('product.borrowing.return.wizard.line', 'wizard_id', string='Return Lines')
-
     notes = fields.Text('Return Notes')
+    line_ids = fields.One2many('product.borrowing.return.wizard.line', 'wizard_id', string='Items to Return')
 
-    @api.onchange('borrowing_id')
-    def _onchange_borrowing_id(self):
-        if self.borrowing_id:
-            # Auto-populate lines from borrowing lines yang pending
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        borrowing_id = self.env.context.get('default_borrowing_id')
+
+        if borrowing_id:
+            borrowing = self.env['product.borrowing'].browse(borrowing_id)
             lines = []
-            for borrow_line in self.borrowing_id.line_ids.filtered(lambda l: l.return_status == 'pending'):
+
+            for line in borrowing.line_ids.filtered(lambda l: l.return_status in ('pending', 'partial')):
                 lines.append((0, 0, {
-                    'borrowing_line_id': borrow_line.id,
-                    'barcode': borrow_line.barcode,
-                    'product_id': borrow_line.product_id.id,
-                    'to_return': True,
+                    'borrowing_line_id': line.id,
+                    'barcode': line.barcode,
+                    'product_id': line.product_id.id,
                     'return_condition': 'good',
+                    'to_return': True,
                 }))
-            self.line_ids = lines
+
+            res.update({
+                'borrowing_id': borrowing_id,
+                'line_ids': lines
+            })
+
+        return res
 
     def action_process_return(self):
-        """Process the return"""
+        """Process the return and restock."""
         self.ensure_one()
+        StockQuant = self.env['stock.quant']
 
         if not self.line_ids.filtered(lambda l: l.to_return):
             raise UserError('Please select at least one item to return!')
@@ -37,80 +50,83 @@ class ProductBorrowingReturnWizard(models.TransientModel):
         returned_count = 0
 
         for line in self.line_ids.filtered(lambda l: l.to_return):
-            # Update borrowing line
-            line.borrowing_line_id.write({
+            borrow_line = line.borrowing_line_id
+            if not borrow_line:
+                raise UserError('Some return lines are missing the linked borrowing line!')
+
+            detail = borrow_line.detail_product_id.sudo()
+            product = detail.product_id
+            warehouse = detail.warehouse_id or self.borrowing_id.warehouse_id
+            location = warehouse.lot_stock_id if warehouse else False
+
+            # Update product status
+            if line.return_condition == 'lost':
+                detail.write({'status_product': 'sold'})
+            elif line.return_condition in ('damaged', 'minor_damage'):
+                detail.write({
+                    'status_product': 'available',
+                    'last_physical_condition': 'damaged'
+                })
+            else:
+                detail.write({'status_product': 'available'})
+
+            # Update stock
+            if product and location and line.return_condition != 'lost':
+                quant = StockQuant.search([
+                    ('product_id', '=', product.id),
+                    ('location_id', '=', location.id)
+                ], limit=1)
+                if quant:
+                    quant.sudo().write({'quantity': quant.quantity + 1})
+                else:
+                    StockQuant.sudo().create({
+                        'product_id': product.id,
+                        'location_id': location.id,
+                        'quantity': 1,
+                    })
+
+            # Update borrow line
+            borrow_line.write({
                 'return_status': 'returned',
                 'return_date': self.return_date,
                 'return_condition': line.return_condition,
                 'return_notes': line.return_notes or self.notes,
             })
-
-            # Update product status based on return condition
-            if line.borrowing_line_id.detail_product_id:
-                detail = line.borrowing_line_id.detail_product_id
-
-                if line.return_condition == 'lost':
-                    # Mark as sold (removed from inventory)
-                    detail.sudo().write({
-                        'status_product': 'sold',
-                        'last_opname_notes': f'Lost during borrowing {self.borrowing_id.name}'
-                    })
-                elif line.return_condition == 'damaged':
-                    # Return to available but mark damage
-                    note = f'Returned damaged from borrowing {self.borrowing_id.name}'
-                    if line.return_notes:
-                        note += f': {line.return_notes}'
-                    detail.sudo().write({
-                        'status_product': 'available',
-                        'last_physical_condition': 'damaged',
-                        'last_opname_notes': note
-                    })
-                elif line.return_condition == 'minor_damage':
-                    # Return to available with minor damage note
-                    note = f'Returned with minor damage from borrowing {self.borrowing_id.name}'
-                    if line.return_notes:
-                        note += f': {line.return_notes}'
-                    detail.sudo().write({
-                        'status_product': 'available',
-                        'last_physical_condition': 'damaged',
-                        'last_opname_notes': note
-                    })
-                else:
-                    # Good condition - return to available
-                    detail.sudo().write({
-                        'status_product': 'available'
-                    })
-
             returned_count += 1
 
-        # Check if all items returned
-        pending_lines = self.borrowing_id.line_ids.filtered(lambda l: l.return_status == 'pending')
-
-        if not pending_lines:
-            # All items returned
-            self.borrowing_id.write({
-                'state': 'returned',
-                'actual_return_date': self.return_date
-            })
+        # Update borrowing main record
+        self.borrowing_id.write({
+            'state': 'returned',
+            'actual_return_date': fields.Datetime.now(),
+        })
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Return Processed',
-                'message': f'{returned_count} item(s) have been returned successfully.',
+                'message': f'{returned_count} item(s) successfully returned.',
                 'type': 'success',
                 'sticky': False,
-            }
+                'next': {'type': 'ir.actions.act_window_close'},
+            },
         }
-
 
 class ProductBorrowingReturnWizardLine(models.TransientModel):
     _name = 'product.borrowing.return.wizard.line'
     _description = 'Product Borrowing Return Wizard Line'
 
-    wizard_id = fields.Many2one('product.borrowing.return.wizard', string='Wizard', required=True, ondelete='cascade')
-    borrowing_line_id = fields.Many2one('product.borrowing.line', string='Borrowing Line', required=True)
+    wizard_id = fields.Many2one(
+        'product.borrowing.return.wizard',
+        string='Wizard',
+        required=True,
+        ondelete='cascade'
+    )
+    borrowing_line_id = fields.Many2one(
+        'product.borrowing.line',
+        string='Borrowing Line',
+        required=True
+    )
 
     barcode = fields.Char('Barcode', readonly=True)
     product_id = fields.Many2one('product.product', string='Product', readonly=True)

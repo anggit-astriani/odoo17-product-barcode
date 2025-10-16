@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Product Borrowing Tree View -->
+    <!-- ========================= TREE VIEW ========================= -->
     <record id="view_product_borrowing_tree" model="ir.ui.view">
         <field name="name">product.borrowing.tree</field>
         <field name="model">product.borrowing</field>
@@ -12,9 +12,9 @@
                   decoration-danger="state == 'overdue'"
                   decoration-success="state == 'returned'"
                   decoration-muted="state == 'cancel'">
+
                 <field name="name"/>
                 <field name="borrower_name"/>
-                <field name="borrower_phone"/>
                 <field name="borrow_date"/>
                 <field name="due_date"/>
                 <field name="duration_days"/>
@@ -27,54 +27,46 @@
         </field>
     </record>
 
-    <!-- Product Borrowing Form View -->
+    <!-- ========================= FORM VIEW ========================= -->
     <record id="view_product_borrowing_form" model="ir.ui.view">
         <field name="name">product.borrowing.form</field>
         <field name="model">product.borrowing</field>
         <field name="arch" type="xml">
-            <form string="Product Borrowing">
+            <form string="Product Borrowing" class="o_form_full">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object"
-                            class="oe_highlight" invisible="state != 'draft'"/>
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
                     <button name="action_borrow" string="Mark as Borrowed" type="object"
-                            class="oe_highlight" invisible="state != 'confirmed'"/>
+                            class="oe_highlight"
+                            invisible="state != 'confirmed'"/>
                     <button name="action_return" string="Process Return" type="object"
-                            class="btn-primary" invisible="state not in ('borrowed', 'overdue')"/>
+                            class="btn-primary"
+                            invisible="state not in ('borrowed','overdue')"/>
                     <button name="action_print_borrowing_document" string="Print Document" type="object"
-                            class="btn-secondary" invisible="state == 'draft'"/>
+                            class="btn-secondary"
+                            invisible="state == 'draft'"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state in ('returned', 'cancel')"/>
+                            invisible="state in ('returned','cancel')"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,confirmed,borrowed,returned"/>
                 </header>
 
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="action_print_borrowing_document" type="object"
-                                class="oe_stat_button" icon="fa-barcode"
-                                invisible="state == 'draft'">
-                            <div class="o_stat_info">
-                                <span class="o_stat_text">Borrowing</span>
-                                <span class="o_stat_text">Barcode</span>
-                            </div>
-                        </button>
-                    </div>
-
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
+                    <!-- Title -->
+                    <div class="oe_title mb-3">
+                        <h2><field name="name" readonly="1"/></h2>
                     </div>
 
                     <!-- Overdue Warning -->
-                    <div class="alert alert-danger" role="alert" invisible="not is_overdue">
-                        <strong>⚠️ OVERDUE!</strong> This borrowing has exceeded the due date.
+                    <div class="alert alert-danger mb-3" invisible="not is_overdue">
+                        <strong>OVERDUE!</strong> This borrowing has exceeded the due date.
                     </div>
 
-                    <!-- Statistics -->
-                    <div class="row" style="margin-bottom: 15px;">
+                    <!-- ===== STATISTICS ===== -->
+                    <div class="row mb-3">
                         <div class="col-4">
-                            <div class="card bg-primary text-white">
+                            <div class="card bg-primary text-white shadow-sm">
                                 <div class="card-body text-center py-2">
                                     <h4 class="mb-0"><field name="total_items" readonly="1"/></h4>
                                     <small>Total Items</small>
@@ -82,7 +74,7 @@
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="card bg-warning text-dark">
+                            <div class="card bg-warning text-dark shadow-sm">
                                 <div class="card-body text-center py-2">
                                     <h4 class="mb-0"><field name="total_pending" readonly="1"/></h4>
                                     <small>Pending</small>
@@ -90,7 +82,7 @@
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="card bg-success text-white">
+                            <div class="card bg-success text-white shadow-sm">
                                 <div class="card-body text-center py-2">
                                     <h4 class="mb-0"><field name="total_returned" readonly="1"/></h4>
                                     <small>Returned</small>
@@ -99,6 +91,7 @@
                         </div>
                     </div>
 
+                    <!-- ===== MAIN INFO ===== -->
                     <group>
                         <group string="Borrower Information">
                             <field name="borrower_name" readonly="state != 'draft'"/>
@@ -107,26 +100,30 @@
                             <field name="borrower_email" readonly="state != 'draft'"/>
                             <field name="borrower_department" readonly="state != 'draft'"/>
                         </group>
+
                         <group string="Borrowing Details">
                             <field name="warehouse_id" readonly="state != 'draft'"/>
                             <field name="borrow_date" readonly="state != 'draft'"/>
                             <field name="due_date" readonly="state != 'draft'"/>
                             <field name="duration_days" readonly="1"/>
-                            <field name="actual_return_date" readonly="1"
-                                   invisible="state != 'returned'"/>
+                            <field name="actual_return_date" readonly="1" invisible="state != 'returned'"/>
                             <field name="responsible_id"/>
                             <field name="borrowing_barcode" readonly="1"/>
                         </group>
                     </group>
 
-                    <group string="Address">
-                        <field name="borrower_address" readonly="state != 'draft'" nolabel="1"/>
-                    </group>
+                    <!-- ===== ADDRESS ===== -->
+<!--                    <group string="Address">-->
+<!--                        <field name="borrower_address" readonly="state != 'draft'" nolabel="1"-->
+<!--                               style="width:100%; height:80px;"/>-->
+<!--                    </group>-->
 
+                    <!-- ===== NOTEBOOK ===== -->
                     <notebook>
+                        <!-- Borrowed Products -->
                         <page string="Borrowed Products" name="products">
-                            <field name="line_ids" readonly="state not in ('draft', 'confirmed')">
-                                <tree string="Products" editable="bottom"
+                            <field name="line_ids" readonly="state not in ('draft','confirmed')">
+                                <tree editable="bottom"
                                       decoration-success="return_status == 'returned'"
                                       decoration-warning="return_status == 'pending'"
                                       decoration-danger="return_status == 'lost'">
@@ -146,16 +143,31 @@
                             </field>
                         </page>
 
+                        <!-- Purpose & Notes -->
                         <page string="Purpose &amp; Notes" name="notes">
-                            <group>
-                                <field name="purpose" readonly="state != 'draft'" nolabel="1"
-                                       placeholder="Enter the purpose or reason for borrowing..."/>
-                            </group>
-                            <group string="Additional Notes">
-                                <field name="notes" nolabel="1"
-                                       placeholder="Add any additional notes..."/>
-                            </group>
+                            <div class="o_row" style="gap: 16px; width: 100%;">
+                                <!-- Purpose Section -->
+                                <div class="o_col" style="width: 50%;">
+                                    <h3>Purpose / Reason</h3>
+                                    <field name="purpose"
+                                           placeholder="Enter the purpose or reason for borrowing..."
+                                           nolabel="1"
+                                           style="width: 100%; min-height: 150px;"
+                                           readonly="state != 'draft'"/>
+                                </div>
+
+                                <!-- Notes Section -->
+                                <div class="o_col" style="width: 50%;">
+                                    <h3>Additional Notes</h3>
+                                    <field name="notes"
+                                           placeholder="Add any additional notes..."
+                                           nolabel="1"
+                                           style="width: 100%; min-height: 150px;"
+                                           readonly="state != 'draft'"/>
+                                </div>
+                            </div>
                         </page>
+
                     </notebook>
 
                     <field name="is_overdue" invisible="1"/>
@@ -164,60 +176,60 @@
         </field>
     </record>
 
-    <!-- Search View -->
+        <!-- ========================= SEARCH VIEW ========================= -->
     <record id="view_product_borrowing_search" model="ir.ui.view">
-        <field name="name">product.borrowing.search</field>
-        <field name="model">product.borrowing</field>
-        <field name="arch" type="xml">
-            <search string="Product Borrowing">
-                <field name="name"/>
-                <field name="borrower_name"/>
-                <field name="borrower_id_number"/>
-                <field name="borrowing_barcode"/>
+    <field name="name">product.borrowing.search</field>
+    <field name="model">product.borrowing</field>
+    <field name="arch" type="xml">
+        <search string="Search Product Borrowing">
+            <!-- Basic search fields -->
+            <field name="name" string="Borrowing Number"/>
+            <field name="borrower_name" string="Borrower Name"/>
+            <field name="borrower_id_number" string="ID Number"/>
+            <field name="borrowing_barcode" string="Borrowing Barcode"/>
+            <field name="warehouse_id" string="Warehouse"/>
+            <field name="responsible_id" string="Responsible"/>
 
-                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
-                <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
-                <filter string="On Loan" name="borrowed" domain="[('state','=','borrowed')]"/>
-                <filter string="Overdue" name="overdue" domain="[('state','=','overdue')]"/>
-                <filter string="Returned" name="returned" domain="[('state','=','returned')]"/>
+            <!-- Filters -->
+            <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+            <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
+            <filter string="On Loan" name="borrowed" domain="[('state','=','borrowed')]"/>
+            <filter string="Overdue" name="overdue" domain="[('state','=','overdue')]"/>
+            <filter string="Returned" name="returned" domain="[('state','=','returned')]"/>
 
-                <separator/>
-                <filter string="Overdue Items" name="filter_overdue" domain="[('is_overdue','=',True)]"/>
+            <separator/>
+            <filter string="Overdue Items" name="filter_overdue" domain="[('is_overdue','=',True)]"/>
 
-                <group expand="0" string="Group By">
-                    <filter string="Status" name="status" context="{'group_by':'state'}"/>
-                    <filter string="Warehouse" name="warehouse" context="{'group_by':'warehouse_id'}"/>
-                    <filter string="Borrow Date" name="borrow_date" context="{'group_by':'borrow_date'}"/>
-                    <filter string="Responsible" name="responsible" context="{'group_by':'responsible_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
+            <!-- Group By options -->
+            <group expand="0" string="Group By">
+                <filter string="Status" name="group_status" context="{'group_by':'state'}"/>
+                <filter string="Warehouse" name="group_warehouse" context="{'group_by':'warehouse_id'}"/>
+                <filter string="Borrow Date" name="group_borrow_date" context="{'group_by':'borrow_date'}"/>
+                <filter string="Responsible" name="group_responsible" context="{'group_by':'responsible_id'}"/>
+            </group>
+        </search>
+    </field>
+</record>
 
-    <!-- Action -->
+    <!-- ========================= ACTION & MENU ========================= -->
     <record id="action_product_borrowing" model="ir.actions.act_window">
         <field name="name">Product Borrowing</field>
         <field name="res_model">product.borrowing</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_product_borrowing_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create your first Product Borrowing
-            </p>
-            <p>
-                Manage product loans to employees, customers, or other parties.
-            </p>
+            <p class="o_view_nocontent_smiling_face">Create your first Product Borrowing</p>
+            <p>Manage product loans to employees, customers, or other parties.</p>
         </field>
     </record>
 
-    <!-- Menu -->
     <menuitem id="menu_loan_root"
               name="Loan"
               parent="stock.menu_stock_root"
               sequence="20"/>
 
     <menuitem id="menu_product_borrowing"
-              name="Borrow/Return"
+              name="Borrow / Return"
               parent="menu_loan_root"
               action="action_product_borrowing"
               sequence="10"/>

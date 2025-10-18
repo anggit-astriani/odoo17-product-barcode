@@ -103,7 +103,12 @@ class BarcodeScanController(http.Controller):
             })
 
         return Response(
-            json.dumps({'count': len(result), 'data': result}),
+            json.dumps({
+                'status': 'success',
+                'message': 'Data fetched successfully.',
+                'count': len(result),
+                'data': result
+            }),
             status=200,
             headers=[('Content-Type', 'application/json')]
         )
@@ -117,7 +122,11 @@ class BarcodeScanController(http.Controller):
         barcode = params.get('barcode')
         if not barcode:
             return Response(
-                json.dumps({"success": False, "message": "Barcode is required"}),
+                json.dumps({
+                    "status": "error",
+                    "message": "Barcode is required",
+                    "code": "400"
+                }),
                 headers=[('Content-Type', 'application/json')],
                 status=400
             )
@@ -129,7 +138,11 @@ class BarcodeScanController(http.Controller):
 
         if not detail:
             return Response(
-                json.dumps({"success": False, "message": f"Barcode '{barcode}' not found"}),
+                json.dumps({
+                    "status": "error",
+                    "message": f"Barcode '{barcode}' not found",
+                    "code": "404"
+                }),
                 headers=[('Content-Type', 'application/json')],
                 status=404
             )
@@ -138,7 +151,7 @@ class BarcodeScanController(http.Controller):
         product = detail.product_id
 
         data = {
-            "success": True,
+            "status": "Success",
             "message": "Barcode found",
             "data": {
                 "receipt": detail.receipt_id.name,
@@ -150,6 +163,7 @@ class BarcodeScanController(http.Controller):
                 "vendor": detail.vendor_id.name,
                 "vendor_code": detail.vendor_code,
                 "status": detail.status_product,
+                "condition": detail.condition,
             }
         }
 
@@ -160,7 +174,7 @@ class BarcodeScanController(http.Controller):
     
 
     @http.route('/api/barcode/update_status', type='http', auth='public', methods=['PATCH'], csrf=False)
-    def update_product_status(self, **kwargs):
+    def update_product_status(self, **params):
         """
         API PATCH untuk update status product detail dan validate picking.
         Request JSON body:
@@ -206,7 +220,7 @@ class BarcodeScanController(http.Controller):
 
         # --- Response sukses ---
         response_data = {
-            "success": True,
+            "status": "Success",
             "message": f"{len(details)} items updated.",
             "updated_barcodes": details.mapped('barcode'),
         }
@@ -218,7 +232,7 @@ class BarcodeScanController(http.Controller):
         )
     
     @http.route('/api/barcode/update_stock', type='http', auth='public', methods=['PATCH'], csrf=False)
-    def update_receipt_status(self, **kwargs):
+    def update_receipt_status(self, **params):
         """
         API PATCH untuk update status product detail dan validate picking.
         Request JSON body:
@@ -232,7 +246,11 @@ class BarcodeScanController(http.Controller):
             data = json.loads(request.httprequest.data)
         except Exception:
             return Response(
-                json.dumps({"success": False, "message": "Invalid JSON format"}),
+                json.dumps({
+                    "status": "error",
+                    "message": "Invalid JSON format",
+                    "code": "400"
+                }),
                 headers=[('Content-Type', 'application/json')],
                 status=400
             )
@@ -242,7 +260,11 @@ class BarcodeScanController(http.Controller):
         # --- Validasi input ---
         if not receipt:
             return Response(
-                json.dumps({"success": False, "message": "receipt is required"}),
+                json.dumps({
+                    "status": "error",
+                    "message": "receipt is required",
+                    "code": "400"
+                }),
                 headers=[('Content-Type', 'application/json')],
                 status=400
             )
@@ -251,7 +273,9 @@ class BarcodeScanController(http.Controller):
         picking = request.env['stock.picking'].sudo().search([('name', '=', receipt)], limit=1)
         if not picking:
             return Response(
-                json.dumps({"success": False, "message": f"Picking '{receipt}' not found"}),
+                json.dumps({
+                    "status": "Success",
+                    "message": f"Picking '{receipt}' not found"}),
                 headers=[('Content-Type', 'application/json')],
                 status=404
             )
@@ -263,8 +287,9 @@ class BarcodeScanController(http.Controller):
         except Exception as e:
             return Response(
                 json.dumps({
-                    "success": False,
-                    "message": f"Failed to validate picking: {str(e)}"
+                    "status": "error",
+                    "message": f"error to validate picking: {str(e)}",
+                    "code": "500"
                 }),
                 headers=[('Content-Type', 'application/json')],
                 status=500
@@ -272,7 +297,7 @@ class BarcodeScanController(http.Controller):
 
         # --- Response sukses ---
         response_data = {
-            "success": True,
+            "status": "Success",
             "message": f"Receipt '{receipt}' validated.",
             "receipt_status": picking.state
         }
@@ -281,4 +306,68 @@ class BarcodeScanController(http.Controller):
             json.dumps(response_data),
             headers=[('Content-Type', 'application/json')],
             status=200
+        )
+    
+    
+    @http.route('/api/stock-product-available', type='http', auth='public', methods=['GET'], csrf=False)
+    def get_stock_product_available(self, **params):
+        """
+        API GET untuk menampilkan semua data Inventory Receipt Product Detail
+        dengan status 'available' berdasarkan warehouse code.
+        Contoh:
+        GET /api/stock-product-available?warehouse=WH
+        """
+        warehouse_code = params.get('warehouse')
+        if not warehouse_code:
+            return Response(
+                json.dumps({'error': 'Parameter warehouse wajib diisi'}),
+                status=400,
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        # Cari warehouse berdasarkan kode
+        warehouse = request.env['stock.warehouse'].sudo().search([('code', '=', warehouse_code)], limit=1)
+        if not warehouse:
+            return Response(
+                json.dumps({'error': f'Warehouse dengan code {warehouse_code} tidak ditemukan'}),
+                status=404,
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        # Ambil data product receipt dengan status 'available'
+        records = request.env['inventory.receipt.product.detail'].sudo().search([
+            ('status_product', '=', 'available'),
+            ('warehouse_id', '=', warehouse.id)
+        ])
+
+        result = []
+        for rec in records:
+            result.append({
+                'id': rec.id,
+                'receipt_id': rec.receipt_id.name if rec.receipt_id else '',
+                'code_product': rec.code_product,
+                'product_id': rec.product_id.id if rec.product_id else '',
+                'product_name': rec.product_id.display_name if rec.product_id else '',
+                'warehouse_id': rec.warehouse_id.id if rec.warehouse_id else '',
+                'warehouse_code': warehouse.code,
+                'warehouse_name': warehouse.name,
+                'barcode': rec.barcode,
+                'unique_code': rec.unique_code,
+                'vendor_id': rec.vendor_id.id if rec.vendor_id else '',
+                'vendor_name': rec.vendor_id.name if rec.vendor_id else '',
+                'vendor_code': rec.vendor_code,
+                'status_product': rec.status_product,
+                'condition': rec.condition,
+                'information': rec.information
+            })
+
+        return Response(
+            json.dumps({
+                'status': 'success',
+                'message': f'Data product available di warehouse {warehouse_code} berhasil diambil.',
+                'count': len(result),
+                'data': result
+            }),
+            status=200,
+            headers=[('Content-Type', 'application/json')]
         )

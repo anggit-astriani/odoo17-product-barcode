@@ -4,7 +4,7 @@ import random
 
 class InventoryReceiptProductDetail(models.Model):
     _name = 'inventory.receipt.product.detail'
-    _rec_name = 'code_product'
+    _rec_name = 'barcode'
 
     receipt_id = fields.Many2one('stock.picking', string='Receipt', domain="[('picking_type_id.code','=','incoming')]")
     code_product = fields.Char('Code Product', required=True)
@@ -17,7 +17,25 @@ class InventoryReceiptProductDetail(models.Model):
     vendor_code = fields.Char(string='Vendor Code', compute='_compute_vendor_code', store=True)
     unique_code = fields.Char(string='Unique Code', readonly=True, copy=False)
     barcode = fields.Char(string='Barcode', readonly=True, copy=False)
-    status_product = fields.Selection([('waiting', 'Waiting'), ('available', 'Available'), ('sold', 'Sold')], string='Status', default='waiting', required=True)
+    status_product = fields.Selection([
+        ('waiting', 'Waiting'),
+        ('available', 'Available'),
+        ('sold', 'Sold'),
+        ('scanned', 'Scanned'),
+        ('moving', 'Moving'),
+        ('on_borrow', 'Borrowed')
+    ], string='Status', default='waiting', required=True)
+
+    scan_process = fields.Selection([
+        ('receipt', 'Receipt'),
+        ('transfer', 'Internal Transfer'),
+        ('transfer_receive', 'Transfer Receive'),
+        ('delivery', 'Delivery Order'),
+    ], string='Last Scan Process')
+
+    condition = fields.Char(string='Condition')
+    last_stock_opname_date = fields.Datetime(string='Last Stock Opname Date')
+    information = fields.Text(string='Information')
 
 
     @api.onchange('receipt_id')

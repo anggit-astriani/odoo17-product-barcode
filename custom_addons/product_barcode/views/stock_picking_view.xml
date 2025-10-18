@@ -27,12 +27,67 @@
                                 <field name="delivery_id"/>
                                 <field name="unique_code"/>
                                 <field name="barcode"/>
+                                <!-- <field name="condition"/>
+                                <field name="information"/> -->
                                 <field name="status_product"/>
                                 <button name="action_print_barcode"
                                         string="Print Barcode"
                                         type="object"
                                         icon="fa-print"
                                         context="{'active_model':'inventory.receipt.product.detail'}"/>
+                            </tree>
+                        </field>
+                    </page>
+
+                    <page string="Transfer Product" name="detail_product_page" invisible="(picking_type_code != 'internal')">
+                        <field name="transfer_product_detail_line_ids" widget="one2many_list" readonly="state != 'draft'">
+                            <tree editable="bottom" create="1" delete="1">
+                                <field name="transfer_id"/>
+                                <field name="product_detail_id"/>
+                                <!-- <field name="barcode"/> -->
+                                <field name="product_id"/>
+                                <field name="code_product"/>
+                                <field name="from_warehouse_id"/>
+                                <field name="to_warehouse_id"/>
+                                <field name="status_product"/>
+                                <!-- <button name="action_print_barcode"
+                                        string="Print Barcode"
+                                        type="object"
+                                        icon="fa-print"
+                                        context="{'active_model':'inventory.receipt.product.detail'}"/> -->
+                            </tree>
+                        </field>
+                    </page>
+
+                    <page string="Receive Transfer Product" name="detail_product_page" invisible="(picking_type_code != 'internal') or (state == 'draft')">
+                        <field name="transfer_receive_product_detail_line_ids" widget="one2many_list" readonly="state != 'assigned'">
+                            <tree editable="bottom" create="1" delete="1">
+                                <field name="transfer_id"/>
+                                <field name="product_transfer_id"/>
+                                <!-- <field name="barcode"/> -->
+                                <field name="product_id"/>
+                                <field name="code_product"/>
+                                <field name="from_warehouse_id"/>
+                                <field name="to_warehouse_id"/>
+                                <field name="received_date"/>
+                                <!-- <button name="action_print_barcode"
+                                        string="Print Barcode"
+                                        type="object"
+                                        icon="fa-print"
+                                        context="{'active_model':'inventory.receipt.product.detail'}"/> -->
+                            </tree>
+                        </field>
+                    </page>
+
+                    <page string="Detail Product" name="detail_product_page" invisible="(picking_type_code != 'outgoing') or (state == 'draft')">
+                        <field name="delivery_product_detail_line_ids" widget="one2many_list" context="{'default_delivery_id': active_id}">
+                            <tree editable="bottom" create="1" delete="1">
+                                <field name="delivery_id"/>
+                                <field name="receipt_code_product"/>
+                                <!-- <field name="barcode"/> -->
+                                <field name="product_id"/>
+                                <field name="warehouse_id"/>
+                                <field name="receipt_id"/>
                             </tree>
                         </field>
                     </page>

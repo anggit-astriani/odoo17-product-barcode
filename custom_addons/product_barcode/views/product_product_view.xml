@@ -33,6 +33,7 @@
                 <field name="unique_code"/>
                 <field name="barcode"/>
                 <field name="status_product"/>
+                <field name="scan_process"/>
             </tree>
         </field>
     </record>

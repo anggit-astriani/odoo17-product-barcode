@@ -10,7 +10,7 @@ class ProductProduct(models.Model):
         warehouse_id = self.env.context.get('warehouse', False)
         domain = [
             ('product_id', '=', self.id),
-            ('status_product', '=', 'available'),
+            ('status_product', 'in', ['available','moving','scanned','on_borrow']),
             ('receipt_id.state', '=', 'done'),
         ]
         if warehouse_id:

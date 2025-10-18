@@ -6,6 +6,12 @@ class StockPicking(models.Model):
 
     receipt_product_detail_line_ids = fields.One2many('inventory.receipt.product.detail', 'receipt_id', string='Detail Product Lines')
 
+    transfer_product_detail_line_ids = fields.One2many('inventory.transfer.product.detail', 'transfer_id', string='Detail Product Lines')
+
+    transfer_receive_product_detail_line_ids = fields.One2many('inventory.transfer.receive.product.detail', 'transfer_id', string='Detail Product Lines')
+
+    delivery_product_detail_line_ids = fields.One2many('inventory.delivery.product.detail', 'delivery_id', string='Detail Product Lines')
+
     # def action_generate_barcodes(self):
     #     for picking in self:
     #         for line in picking.receipt_product_detail_line_ids:

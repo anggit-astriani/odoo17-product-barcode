@@ -178,7 +178,7 @@ class ApiProductBorrowing(http.Controller):
     @http.route('/api/borrowing/return', type='http', auth='public', methods=['POST'], csrf=False)
     def return_borrowing(self, **kwargs):
         """
-        Return borrowed products
+        Return borrowed products with stock restoration
         POST body:
         {
             "borrowing_id": 1,
@@ -220,7 +220,10 @@ class ApiProductBorrowing(http.Controller):
         if not items:
             return response_json(False, "items list is required", http_status=400)
 
+        StockQuant = request.env['stock.quant']
         returned_count = 0
+        restored_items = []
+
         for item in items:
             barcode = item.get('barcode')
             if not barcode:
@@ -242,10 +245,41 @@ class ApiProductBorrowing(http.Controller):
                 'return_notes': item.get('return_notes', data.get('notes', '')),
             })
 
-            # Update product status
+            # Update product status and restore stock
             if line.detail_product_id:
                 detail = line.detail_product_id.sudo()
+                product = detail.product_id
+                warehouse = detail.warehouse_id
+                location = warehouse.lot_stock_id if warehouse else False
 
+                # Restore stock (except for lost items)
+                if product and location and return_condition != 'lost':
+                    quant = StockQuant.search([
+                        ('product_id', '=', product.id),
+                        ('location_id', '=', location.id)
+                    ], limit=1)
+
+                    if quant:
+                        new_qty = quant.quantity + 1
+                        quant.sudo().write({'quantity': new_qty})
+                        restored_items.append({
+                            'product': product.name,
+                            'quantity': new_qty,
+                            'warehouse': warehouse.name
+                        })
+                    else:
+                        StockQuant.sudo().create({
+                            'product_id': product.id,
+                            'location_id': location.id,
+                            'quantity': 1,
+                        })
+                        restored_items.append({
+                            'product': product.name,
+                            'quantity': 1,
+                            'warehouse': warehouse.name
+                        })
+
+                # Update status based on condition
                 if return_condition == 'lost':
                     detail.write({
                         'status_product': 'sold',
@@ -274,7 +308,8 @@ class ApiProductBorrowing(http.Controller):
             "borrowing_number": borrowing.name,
             "returned_count": returned_count,
             "pending_count": len(pending),
-            "status": borrowing.state
+            "status": borrowing.state,
+            "restored_stock": restored_items
         }
 
         return response_json(True, f"{returned_count} items returned successfully", data=result)

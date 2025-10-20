@@ -18764,3 +18764,6 @@ View error context:
  'xmlid': 'view_picking_form_add_detail_product'}
 
 2025-10-20 10:20:12,759 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 10:20:12] "POST /web/dataset/call_button HTTP/1.1" 200 - 3024 2.149 2.881
+2025-10-20 10:27:35,567 32476 INFO db_odoo17_penjualan odoo.service.server: Initiating shutdown 
+2025-10-20 10:27:35,567 32476 INFO db_odoo17_penjualan odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2025-10-20 10:27:35,651 32476 INFO db_odoo17_penjualan odoo.sql_db: ConnectionPool(used=0/count=0/max=64): Closed 3 connections  

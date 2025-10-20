@@ -15,6 +15,22 @@
                                 class="btn-secondary"
                                 icon="fa-barcode"/> -->
 
+                        <!-- Button Generate Barcode -->
+                        <div class="oe_button_box mb-3" style="margin-bottom: 10px;">
+                            <button name="action_generate_barcodes"
+                                    string="Generate Barcodes"
+                                    type="object"
+                                    class="oe_stat_button btn-primary"
+                                    icon="fa-barcode"
+                                    help="Generate barcodes berdasarkan quantity di Operations tab"/>
+                        </div>
+                        
+                        <!-- Info Box -->
+                        <div class="alert alert-info" role="alert">
+                            <strong>Generate Barcodes:</strong> Click button di atas untuk generate barcode otomatis 
+                            berdasarkan quantity di tab Operations. Contoh: jika quantity = 3, akan generate 3 barcode berbeda.
+                        </div>
+
                         <field name="receipt_product_detail_line_ids" widget="one2many_list">
                             <tree editable="bottom" create="1" delete="1">
                                 <field name="receipt_id"/>

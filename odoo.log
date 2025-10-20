@@ -16489,3 +16489,176 @@ Traceback (most recent call last):
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AttributeError: The method 'stock.picking.action_generate_barcodes' does not exist
 2025-10-20 09:44:49,947 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:44:49] "POST /web/dataset/call_button HTTP/1.1" 200 - 1 0.002 0.017
+2025-10-20 09:46:44,437 22940 ERROR db_odoo17_penjualan odoo.http: Exception during request handling. 
+Traceback (most recent call last):
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\http.py", line 2396, in __call__
+    response = request._serve_db()
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\http.py", line 1971, in _serve_db
+    return service_model.retrying(self._serve_ir_http, self.env)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\service\model.py", line 152, in retrying
+    result = func()
+             ^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\http.py", line 1999, in _serve_ir_http
+    response = self.dispatcher.dispatch(rule.endpoint, args)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\http.py", line 2203, in dispatch
+    result = self.request.registry['ir.http']._dispatch(endpoint)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\addons\base\models\ir_http.py", line 221, in _dispatch
+    result = endpoint(**request.params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\http.py", line 786, in route_wrapper
+    result = endpoint(self, *args, **params_ok)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\users\anggi\onedrive\documents\ssi\odoo-penjualan\addons\web\controllers\dataset.py", line 29, in call_button
+    action = self._call_kw(model, method, args, kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\users\anggi\onedrive\documents\ssi\odoo-penjualan\addons\web\controllers\dataset.py", line 20, in _call_kw
+    get_public_method(Model, method)  # Don't use the result, call_kw will redo the getattr
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\service\model.py", line 36, in get_public_method
+    raise AttributeError(f"The method '{model._name}.{name}' does not exist")  # noqa: TRY004
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: The method 'stock.picking.action_generate_barcodes' does not exist
+2025-10-20 09:46:44,440 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:46:44] "POST /web/dataset/call_button HTTP/1.1" 200 - 1 0.001 0.011
+2025-10-20 09:49:53,198 25444 INFO db_odoo17_penjualan odoo.service.server: Initiating shutdown 
+2025-10-20 09:49:53,199 25444 INFO db_odoo17_penjualan odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2025-10-20 09:49:53,252 25444 INFO db_odoo17_penjualan odoo.sql_db: ConnectionPool(used=0/count=0/max=64): Closed 3 connections  
+2025-10-20 09:50:06,676 17756 INFO ? odoo: Odoo version 17.0 
+2025-10-20 09:50:06,677 17756 INFO ? odoo: Using configuration file at C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo.conf 
+2025-10-20 09:50:06,677 17756 INFO ? odoo: addons paths: ['C:\\Users\\anggi\\OneDrive\\Documents\\SSI\\odoo-penjualan\\odoo\\addons', 'c:\\users\\anggi\\onedrive\\documents\\ssi\\odoo-penjualan\\data\\addons\\17.0', 'c:\\users\\anggi\\onedrive\\documents\\ssi\\odoo-penjualan\\addons', 'c:\\users\\anggi\\onedrive\\documents\\ssi\\odoo-penjualan\\custom_addons', 'c:\\users\\anggi\\onedrive\\documents\\ssi\\odoo-penjualan\\odoo\\addons'] 
+2025-10-20 09:50:06,677 17756 INFO ? odoo: database: odoo@localhost:5432 
+2025-10-20 09:50:07,009 17756 INFO ? odoo.addons.base.models.ir_actions_report: You need Wkhtmltopdf to print a pdf version of the reports. 
+2025-10-20 09:50:07,429 17756 INFO ? odoo.service.server: HTTP service (werkzeug) running on AcerSwift:8069 
+2025-10-20 09:50:07,598 17756 INFO db_odoo17_penjualan odoo.modules.loading: loading 1 modules... 
+2025-10-20 09:50:07,606 17756 INFO db_odoo17_penjualan odoo.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra) 
+2025-10-20 09:50:07,644 17756 INFO db_odoo17_penjualan odoo.modules.loading: updating modules list 
+2025-10-20 09:50:07,652 17756 INFO db_odoo17_penjualan odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2025-10-20 09:50:09,616 17756 INFO db_odoo17_penjualan odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['Product Barcode'] to user __system__ #1 via n/a 
+2025-10-20 09:50:09,617 17756 INFO db_odoo17_penjualan odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['Product Barcode'] to user __system__ #1 via n/a 
+2025-10-20 09:50:11,117 17756 INFO db_odoo17_penjualan odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2025-10-20 09:50:11,207 17756 INFO db_odoo17_penjualan odoo.modules.loading: loading 67 modules... 
+2025-10-20 09:50:14,349 17756 INFO db_odoo17_penjualan odoo.modules.loading: Loading module product_barcode (53/67) 
+2025-10-20 09:50:14,714 17756 WARNING db_odoo17_penjualan odoo.api.create: The model odoo.addons.product_barcode.models.inventory_receipt_product_detail is not overriding the create method in batch 
+2025-10-20 09:50:14,729 17756 WARNING db_odoo17_penjualan odoo.api.create: The model odoo.addons.product_barcode.models.inventory_delivery_product_detail is not overriding the create method in batch 
+2025-10-20 09:50:14,740 17756 WARNING db_odoo17_penjualan odoo.api.create: The model odoo.addons.product_barcode.models.stock_opname is not overriding the create method in batch 
+2025-10-20 09:50:14,742 17756 WARNING db_odoo17_penjualan odoo.api.create: The model odoo.addons.product_barcode.models.stock_opname is not overriding the create method in batch 
+2025-10-20 09:50:14,755 17756 WARNING db_odoo17_penjualan odoo.api.create: The model odoo.addons.product_barcode.models.product_borrowing is not overriding the create method in batch 
+2025-10-20 09:50:14,755 17756 WARNING db_odoo17_penjualan odoo.api.create: The model odoo.addons.product_barcode.models.product_borrowing is not overriding the create method in batch 
+2025-10-20 09:50:14,794 17756 WARNING db_odoo17_penjualan odoo.models: The model inventory.receipt.product.detail has no _description 
+2025-10-20 09:50:14,794 17756 WARNING db_odoo17_penjualan odoo.models: The model inventory.delivery.product.detail has no _description 
+2025-10-20 09:50:14,795 17756 WARNING db_odoo17_penjualan odoo.models: The model inventory.receipt.product.detail has no _description 
+2025-10-20 09:50:14,995 17756 WARNING db_odoo17_penjualan odoo.fields: Field inventory.delivery.product.detail.sale_id with unknown comodel_name 'sale.order' 
+2025-10-20 09:50:15,049 17756 INFO db_odoo17_penjualan odoo.modules.registry: module product_barcode: creating or updating database tables 
+2025-10-20 09:50:15,171 17756 INFO db_odoo17_penjualan odoo.models: Prepare computation of inventory.receipt.product.detail.current_borrowing_id 
+2025-10-20 09:50:15,172 17756 INFO db_odoo17_penjualan odoo.models: Prepare computation of inventory.receipt.product.detail.is_borrowed 
+2025-10-20 09:50:15,454 17756 WARNING db_odoo17_penjualan odoo.addons.base.models.ir_model: Two fields (transfer_product_detail_line_ids, receipt_product_detail_line_ids) of stock.picking() have the same label: Detail Product Lines. [Modules: product_barcode and product_barcode] 
+2025-10-20 09:50:15,455 17756 WARNING db_odoo17_penjualan odoo.addons.base.models.ir_model: Two fields (transfer_receive_product_detail_line_ids, receipt_product_detail_line_ids) of stock.picking() have the same label: Detail Product Lines. [Modules: product_barcode and product_barcode] 
+2025-10-20 09:50:15,455 17756 WARNING db_odoo17_penjualan odoo.addons.base.models.ir_model: Two fields (delivery_product_detail_line_ids, receipt_product_detail_line_ids) of stock.picking() have the same label: Detail Product Lines. [Modules: product_barcode and product_barcode] 
+2025-10-20 09:50:15,455 17756 WARNING db_odoo17_penjualan odoo.addons.base.models.ir_model: Two fields (unique_code, code_product) of inventory.transfer.product.detail() have the same label: Product Code. [Modules: product_barcode and product_barcode] 
+2025-10-20 09:50:15,455 17756 WARNING db_odoo17_penjualan odoo.addons.base.models.ir_model: Two fields (unique_code, code_product) of inventory.transfer.receive.product.detail() have the same label: Product Code. [Modules: product_barcode and product_barcode] 
+2025-10-20 09:50:15,734 17756 WARNING db_odoo17_penjualan odoo.modules.loading: Transient module states were reset 
+2025-10-20 09:50:15,735 17756 ERROR db_odoo17_penjualan odoo.modules.registry: Failed to load registry 
+Traceback (most recent call last):
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\registry.py", line 110, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\loading.py", line 481, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\loading.py", line 366, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\loading.py", line 207, in load_module_graph
+    registry.init_models(env.cr, model_names, {'module': package.name}, new_install)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\registry.py", line 582, in init_models
+    func()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\addons\base\models\ir_model.py", line 1948, in _reflect_relation
+    self.env.invalidate_all()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\api.py", line 727, in invalidate_all
+    self.flush_all()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\api.py", line 737, in flush_all
+    self._recompute_all()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\api.py", line 733, in _recompute_all
+    self[field.model_name]._recompute_field(field)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\models.py", line 6977, in _recompute_field
+    field.recompute(records)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 1379, in recompute
+    apply_except_missing(self.compute_value, recs)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 1352, in apply_except_missing
+    func(records)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 1401, in compute_value
+    records._compute_field_value(self)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\models.py", line 4923, in _compute_field_value
+    fields.determine(field.compute, self)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 100, in determine
+    needle = getattr(records, needle)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'inventory.receipt.product.detail' object has no attribute '_compute_is_borrowed'
+2025-10-20 09:50:15,761 17756 CRITICAL db_odoo17_penjualan odoo.service.server: Failed to initialize database `db_odoo17_penjualan`. 
+Traceback (most recent call last):
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\service\server.py", line 1369, in preload_registries
+    registry = Registry.new(dbname, update_module=update_module)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\AppData\Local\Programs\Python\Python311\Lib\site-packages\decorator.py", line 232, in fun
+    return caller(func, *(extras + args), **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\tools\func.py", line 87, in locked
+    return func(inst, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\registry.py", line 110, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\loading.py", line 481, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\loading.py", line 366, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\loading.py", line 207, in load_module_graph
+    registry.init_models(env.cr, model_names, {'module': package.name}, new_install)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\modules\registry.py", line 582, in init_models
+    func()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\addons\base\models\ir_model.py", line 1948, in _reflect_relation
+    self.env.invalidate_all()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\api.py", line 727, in invalidate_all
+    self.flush_all()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\api.py", line 737, in flush_all
+    self._recompute_all()
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\api.py", line 733, in _recompute_all
+    self[field.model_name]._recompute_field(field)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\models.py", line 6977, in _recompute_field
+    field.recompute(records)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 1379, in recompute
+    apply_except_missing(self.compute_value, recs)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 1352, in apply_except_missing
+    func(records)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 1401, in compute_value
+    records._compute_field_value(self)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\models.py", line 4923, in _compute_field_value
+    fields.determine(field.compute, self)
+  File "C:\Users\anggi\OneDrive\Documents\SSI\odoo-penjualan\odoo\fields.py", line 100, in determine
+    needle = getattr(records, needle)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'inventory.receipt.product.detail' object has no attribute '_compute_is_borrowed'
+2025-10-20 09:50:16,097 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "GET /web HTTP/1.1" 200 - 12 0.012 0.033
+2025-10-20 09:50:16,866 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "POST /web/action/load HTTP/1.1" 200 - 9 0.040 0.019
+2025-10-20 09:50:16,882 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "GET /bus/websocket_worker_bundle?v=17.0-1 HTTP/1.1" 304 - 3 0.016 0.061
+2025-10-20 09:50:16,909 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.048 0.055
+2025-10-20 09:50:16,949 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 304 - 9 0.032 0.075
+2025-10-20 09:50:16,951 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "POST /web/dataset/call_kw/res.users/systray_get_activities HTTP/1.1" 200 - 10 0.054 0.077
+2025-10-20 09:50:16,967 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:16] "POST /mail/init_messaging HTTP/1.1" 200 - 34 0.094 0.071
+2025-10-20 09:50:17,140 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:17] "POST /mail/load_message_failures HTTP/1.1" 200 - 9 0.008 0.021
+2025-10-20 09:50:17,460 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:17] "POST /web/dataset/call_kw/stock.picking/get_views HTTP/1.1" 200 - 3 0.011 0.076
+2025-10-20 09:50:17,470 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:17] "GET /websocket?version=17.0-1 HTTP/1.1" 101 - 1 0.001 0.022
+2025-10-20 09:50:18,364 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:18] "POST /web/dataset/call_kw/stock.picking/web_read HTTP/1.1" 200 - 34 0.039 0.086
+2025-10-20 09:50:18,560 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:18] "POST /web/dataset/call_kw/stock.picking.type/check_access_rights HTTP/1.1" 200 - 1 0.000 0.008
+2025-10-20 09:50:18,660 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:18] "GET /web/service-worker.js HTTP/1.1" 200 - 1 0.001 0.013
+2025-10-20 09:50:18,771 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:18] "POST /mail/thread/data HTTP/1.1" 200 - 21 0.027 0.040
+2025-10-20 09:50:18,791 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:18] "POST /mail/thread/messages HTTP/1.1" 200 - 21 0.029 0.036
+2025-10-20 09:50:23,113 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:23] "POST /web/action/load HTTP/1.1" 200 - 8 0.007 0.019
+2025-10-20 09:50:23,372 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:23] "POST /web/dataset/call_kw/stock.picking.type/get_views HTTP/1.1" 200 - 2 0.003 0.057
+2025-10-20 09:50:24,563 22940 INFO db_odoo17_penjualan werkzeug: 127.0.0.1 - - [20/Oct/2025 09:50:24] "POST /web/dataset/call_kw/stock.picking.type/web_search_read HTTP/1.1" 200 - 10 0.003 0.025
+2025-10-20 09:50:59,879 17756 INFO db_odoo17_penjualan odoo.service.server: Initiating shutdown 
+2025-10-20 09:50:59,880 17756 INFO db_odoo17_penjualan odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2025-10-20 09:51:00,039 17756 INFO db_odoo17_penjualan odoo.sql_db: ConnectionPool(used=0/count=0/max=64): Closed 3 connections  

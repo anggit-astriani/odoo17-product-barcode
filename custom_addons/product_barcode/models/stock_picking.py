@@ -1,5 +1,7 @@
 from odoo import models, fields, _
 import uuid
+from odoo.exceptions import UserError
+import random
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'

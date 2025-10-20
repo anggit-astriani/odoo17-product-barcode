@@ -4,3 +4,9 @@ from . import inventory_transfer_product_detail
 from . import product_product
 from . import inventory_delivery_product_detail
 from . import inventory_transfer_receive_product_detail
+from . import product_product
+from . import stock_opname
+from . import stock_opname_export_wizard
+from . import stock_opname_comparison
+from . import product_borrowing
+from . import product_borrowing_return_wizard

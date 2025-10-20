@@ -3,3 +3,5 @@ from . import api_stock_picking
 from . import api_inventory_internal_transfer
 from . import api_inventory_delivery_product_detail
 from . import api_inventory_internal_transfer_receive
+from . import api_stock_opname
+from . import api_product_borrowing

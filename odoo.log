@@ -802,7 +802,7 @@
 2025-10-04 09:59:55,545 15448 INFO db_odoo17_penjualan odoo.addons.base.models.ir_module: User #2 triggered module installation 
 2025-10-04 09:59:55,551 15448 INFO db_odoo17_penjualan odoo.addons.base.models.ir_cron: Job done: `SMS: SMS Queue Manager` (0.011s). 
 2025-10-04 09:59:55,559 15448 ERROR db_odoo17_penjualan odoo.sql_db: bad query: SELECT * FROM ir_cron FOR UPDATE NOWAIT
-ERROR: tidak mendapatkan kunci pada baris relasi « ir_cron »
+ERROR: tidak mendapatkan kunci pada baris relasi ï¿½ ir_cron ï¿½
  
 2025-10-04 09:59:55,561 15448 INFO db_odoo17_penjualan odoo.addons.base.models.ir_cron: Starting job `Snailmail: process letters queue`. 
 2025-10-04 09:59:55,569 15448 INFO db_odoo17_penjualan odoo.addons.base.models.ir_cron: Job done: `Snailmail: process letters queue` (0.009s). 

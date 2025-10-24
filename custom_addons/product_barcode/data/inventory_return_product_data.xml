@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence untuk Return Number -->
+        <record id="seq_inventory_return_product" model="ir.sequence">
+            <field name="name">Product Return Sequence</field>
+            <field name="code">inventory.return.product</field>
+            <field name="prefix">RTN/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+    </data>
+</odoo>

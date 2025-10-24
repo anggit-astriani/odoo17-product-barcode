@@ -22,6 +22,12 @@ class InventoryDeliveryProductDetail(models.Model):
     )
     sale_id = fields.Many2one('sale.order', string='Sales Order')
     warehouse_id = fields.Many2one('stock.warehouse', string='Werehouse')
+    status_product = fields.Selection(
+        related='receipt_code_product.status_product',
+        string='Status Product',
+        readonly=True,
+        store=True
+    )
 
 
     @api.onchange('delivery_id')

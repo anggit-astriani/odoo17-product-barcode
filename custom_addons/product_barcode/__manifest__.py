@@ -11,9 +11,11 @@
     'depends': ['web','base', 'product', 'account', 'purchase', 'stock'],
     'data': [
         'security/ir.model.access.csv',
+        'data/inventory_return_product_data.xml',
         'views/stock_picking_view.xml',
         'reports/inventory_receipt_barcode_report.xml',
         'views/product_product_view.xml',
+        'views/inventory_return_product_views.xml',
     ],
     'installable': True,
     'license': 'OEEL-1',

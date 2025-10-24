@@ -4,3 +4,5 @@ from . import inventory_transfer_product_detail
 from . import product_product
 from . import inventory_delivery_product_detail
 from . import inventory_transfer_receive_product_detail
+from . import inventory_return_product
+from . import inventory_return_product_line

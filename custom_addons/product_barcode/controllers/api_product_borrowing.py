@@ -179,7 +179,8 @@ class ApiProductBorrowing(http.Controller):
     def return_borrowing(self, **kwargs):
         """
         Return borrowed products with stock restoration
-        POST body:
+
+        POST body example:
         {
             "borrowing_id": 1,
             "return_date": "2025-10-18 14:00:00",
@@ -198,110 +199,108 @@ class ApiProductBorrowing(http.Controller):
         except Exception:
             return response_json(False, "Invalid JSON format", http_status=400)
 
-        borrowing_id = data.get('borrowing_id')
+        borrowing_id = data.get("borrowing_id")
         if not borrowing_id:
             return response_json(False, "borrowing_id is required", http_status=400)
 
-        borrowing = request.env['product.borrowing'].sudo().browse(borrowing_id)
+        borrowing = request.env["product.borrowing"].sudo().browse(borrowing_id)
         if not borrowing.exists():
             return response_json(False, f"Borrowing ID {borrowing_id} not found", http_status=404)
 
-        # Parse return date
-        return_date_str = data.get('return_date')
-        if return_date_str:
-            try:
-                return_date = datetime.strptime(return_date_str, '%Y-%m-%d %H:%M:%S')
-            except ValueError:
-                return_date = datetime.now()
-        else:
+        return_date_str = data.get("return_date")
+        try:
+            return_date = (
+                datetime.strptime(return_date_str, "%Y-%m-%d %H:%M:%S")
+                if return_date_str else datetime.now()
+            )
+        except ValueError:
             return_date = datetime.now()
 
-        items = data.get('items', [])
+        items = data.get("items", [])
         if not items:
             return response_json(False, "items list is required", http_status=400)
 
-        StockQuant = request.env['stock.quant']
+        StockQuant = request.env["stock.quant"].sudo()
+
         returned_count = 0
         restored_items = []
 
         for item in items:
-            barcode = item.get('barcode')
+            barcode = item.get("barcode")
             if not barcode:
                 continue
 
-            # Find line
-            line = borrowing.line_ids.filtered(lambda l: l.barcode == barcode and l.return_status == 'pending')
+            line = borrowing.line_ids.filtered(
+                lambda l: l.barcode == barcode and l.return_status == "pending"
+            )
             if not line:
                 continue
-
             line = line[0]
-            return_condition = item.get('return_condition', 'good')
 
-            # Update line
-            line.write({
-                'return_status': 'returned',
-                'return_date': return_date,
-                'return_condition': return_condition,
-                'return_notes': item.get('return_notes', data.get('notes', '')),
+            return_condition = item.get("return_condition", "good")
+            return_notes = item.get("return_notes", data.get("notes", ""))
+
+            line.sudo().write({
+                "return_status": "returned",
+                "return_date": return_date,
+                "return_condition": return_condition,
+                "return_notes": return_notes,
             })
 
-            # Update product status and restore stock
-            if line.detail_product_id:
-                detail = line.detail_product_id.sudo()
-                product = detail.product_id
-                warehouse = detail.warehouse_id
-                location = warehouse.lot_stock_id if warehouse else False
+            detail = line.detail_product_id.sudo()
+            if not detail:
+                continue
 
-                # Restore stock (except for lost items)
-                if product and location and return_condition != 'lost':
-                    quant = StockQuant.search([
-                        ('product_id', '=', product.id),
-                        ('location_id', '=', location.id)
-                    ], limit=1)
+            product = detail.product_id
+            warehouse = detail.warehouse_id
+            location = warehouse.lot_stock_id if warehouse else False
 
-                    if quant:
-                        new_qty = quant.quantity + 1
-                        quant.sudo().write({'quantity': new_qty})
-                        restored_items.append({
-                            'product': product.name,
-                            'quantity': new_qty,
-                            'warehouse': warehouse.name
-                        })
-                    else:
-                        StockQuant.sudo().create({
-                            'product_id': product.id,
-                            'location_id': location.id,
-                            'quantity': 1,
-                        })
-                        restored_items.append({
-                            'product': product.name,
-                            'quantity': 1,
-                            'warehouse': warehouse.name
-                        })
+            if product and location and return_condition != "lost":
+                quant = StockQuant.search([
+                    ("product_id", "=", product.id),
+                    ("location_id", "=", location.id)
+                ], limit=1)
 
-                # Update status based on condition
-                if return_condition == 'lost':
-                    detail.write({
-                        'status_product': 'sold',
-                        'last_opname_notes': f'Lost during borrowing {borrowing.name}'
-                    })
-                elif return_condition in ('damaged', 'minor_damage'):
-                    detail.write({
-                        'status_product': 'available',
-                        'last_physical_condition': 'damaged',
-                        'last_opname_notes': f'Returned {return_condition} from {borrowing.name}'
+                if quant:
+                    quant.write({"quantity": quant.quantity + 1})
+                    restored_items.append({
+                        "product": product.name,
+                        "quantity": quant.quantity,
+                        "warehouse": warehouse.name,
                     })
                 else:
-                    detail.write({'status_product': 'available'})
+                    StockQuant.create({
+                        "product_id": product.id,
+                        "location_id": location.id,
+                        "quantity": 1,
+                    })
+                    restored_items.append({
+                        "product": product.name,
+                        "quantity": 1,
+                        "warehouse": warehouse.name,
+                    })
+
+            if return_condition == "lost":
+                detail.write({
+                    "status_product": "sold",
+                    "last_opname_notes": f"Lost during borrowing {borrowing.name}",
+                })
+            elif return_condition in ("damaged", "minor_damage"):
+                detail.write({
+                    "status_product": "available",
+                    "last_physical_condition": "damaged",
+                    "last_opname_notes": f"Returned {return_condition} from {borrowing.name}",
+                })
+            else:
+                detail.write({"status_product": "available"})
 
             returned_count += 1
 
-        # Check if all returned
-        pending = borrowing.line_ids.filtered(lambda l: l.return_status == 'pending')
+        pending = borrowing.line_ids.filtered(lambda l: l.return_status == "pending")
         if not pending:
-            borrowing.write({
-                'state': 'returned',
-                'actual_return_date': return_date
+            borrowing.sudo().write({
+                "state": "returned",
+                "actual_return_date": return_date
             })
 
         result = {
@@ -309,7 +308,7 @@ class ApiProductBorrowing(http.Controller):
             "returned_count": returned_count,
             "pending_count": len(pending),
             "status": borrowing.state,
-            "restored_stock": restored_items
+            "restored_stock": restored_items,
         }
 
         return response_json(True, f"{returned_count} items returned successfully", data=result)

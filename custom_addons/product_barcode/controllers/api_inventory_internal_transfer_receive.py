@@ -5,6 +5,61 @@ import json
 
 class ApiInventorunternalTransferReceive(http.Controller):
 
+    @http.route('/api/internal-transfer-receive/detail', type='http', auth='public', methods=['GET'], csrf=False)
+    def get_internal_transfer_receive_detail(self, transfer_id=None, **kwargs):
+        try:
+            if not transfer_id:
+                raise ValueError(_("Parameter 'transfer_id' wajib diisi."))
+
+            # --- Cari picking internal transfer ---
+            picking = request.env['stock.picking'].sudo().search([
+                ('name', '=', transfer_id),
+                ('picking_type_id.code', '=', 'internal')
+            ], limit=1)
+
+            if not picking:
+                raise ValueError(_("Internal transfer ID %s tidak ditemukan.") % transfer_id)
+
+            # --- Ambil semua transfer receive product detail ---
+            receive_details = request.env['inventory.transfer.receive.product.detail'].sudo().search([
+                ('transfer_id', '=', picking.id)
+            ])
+
+            data = []
+            for detail in receive_details:
+                data.append({
+                    "receive_id": detail.id,
+                    "transfer_id": picking.name,
+                    "product_barcode": detail.barcode,
+                    "product_code": detail.code_product,
+                    "unique_code": detail.unique_code,
+                    "product_name": detail.product_id.name if detail.product_id else None,
+                    "from_warehouse": detail.from_warehouse_id.name if detail.from_warehouse_id else None,
+                    "to_warehouse": detail.to_warehouse_id.name if detail.to_warehouse_id else None,
+                    "received_date": detail.received_date.strftime("%Y-%m-%d %H:%M:%S") if detail.received_date else None,
+                })
+
+            return Response(
+                json.dumps({
+                    "status": "success",
+                    "message": "Detail internal transfer receive product berhasil diambil.",
+                    "data": data
+                }),
+                headers=[('Content-Type', 'application/json')],
+                status=200
+            )
+
+        except Exception as e:
+            return Response(
+                json.dumps({
+                    "status": "error",
+                    "message": str(e),
+                    "code": "500"
+                }),
+                headers=[('Content-Type', 'application/json')],
+                status=500
+            )
+        
     @http.route('/api/internal-transfer-receive/create', type='http', auth='public', methods=['POST'], csrf=False)
     def create_internal_transfer_receive(self, **params):
         """

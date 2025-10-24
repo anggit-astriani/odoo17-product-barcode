@@ -26,6 +26,12 @@ class InventoryReceiptProductDetail(models.Model):
         ('on_borrow', 'Borrowed')
     ], string='Status', default='waiting', required=True)
 
+    print_status = fields.Selection([
+        ('not_printed', 'Not Printed'),
+        ('printed', 'Printed')
+    ], string='Print Status', default='not_printed', required=True, 
+       help='Status untuk tracking apakah barcode sudah dicetak atau belum')
+
     scan_process = fields.Selection([
         ('receipt', 'Receipt'),
         ('transfer', 'Internal Transfer'),
@@ -174,4 +180,7 @@ class InventoryReceiptProductDetail(models.Model):
         return super().create(vals)
 
     def action_print_barcode(self):
+        self.ensure_one()
+        # Update print status menjadi 'printed'
+        self.write({'print_status': 'printed'})
         return self.env.ref('product_barcode.action_report_inventory_barcode').report_action(self)

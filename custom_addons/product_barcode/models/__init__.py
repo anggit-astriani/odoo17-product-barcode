@@ -10,3 +10,5 @@ from . import stock_opname_export_wizard
 from . import stock_opname_comparison
 from . import product_borrowing
 from . import product_borrowing_return_wizard
+from . import inventory_return_product
+from . import inventory_return_product_line

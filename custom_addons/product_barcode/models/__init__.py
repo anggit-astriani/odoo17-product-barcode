@@ -6,3 +6,5 @@ from . import inventory_delivery_product_detail
 from . import inventory_transfer_receive_product_detail
 from . import inventory_return_product
 from . import inventory_return_product_line
+from . import inventory_return_product_operation
+from . import api_access_token

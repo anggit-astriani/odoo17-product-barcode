@@ -220,17 +220,19 @@ class ApiStockPicking(http.Controller):
         - Internal Transfers
         - Delivery Orders
         Per warehouse + warehouse code.
+        Contoh: GET /api/inventory/overview
         """
 
-        user = authenticate_token()
-        if not user:
-            return request.make_response(
-                json.dumps({
-                    'status': 401,
-                    'message': 'Unauthorized: Invalid or expired token'
-                }),
-                headers=[('Content-Type', 'application/json')]
-            )
+        # kode untuk login user, saat ini dimatikan dulu
+        # user = authenticate_token()
+        # if not user:
+        #     return request.make_response(
+        #         json.dumps({
+        #             'status': 401,
+        #             'message': 'Unauthorized: Invalid or expired token'
+        #         }),
+        #         headers=[('Content-Type', 'application/json')]
+        #     )
 
         picking_types = request.env['stock.picking.type'].sudo().search([])
         result = []

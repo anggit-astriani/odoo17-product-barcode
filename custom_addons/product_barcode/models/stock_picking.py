@@ -3,6 +3,12 @@ import uuid
 from odoo.exceptions import UserError
 import random
 
+# ============================================================
+# MODEL: StockPicking
+# ============================================================
+# class ini digunakan untuk menambahkan relasi one2many pada stock.picking
+# jadi class yang akan digunakan pada stock.picking akan didefinisikan disini
+# ============================================================
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
@@ -14,12 +20,14 @@ class StockPicking(models.Model):
 
     delivery_product_detail_line_ids = fields.One2many('inventory.delivery.product.detail', 'delivery_id', string='Detail Product Lines')
 
+    # function untuk generate barcode
     def action_generate_barcodes(self):
         """
         Generate barcodes berdasarkan quantity di operations (move_ids).
         Satu product dengan quantity 3 akan generate 3 barcode berbeda.
         Hanya generate barcode untuk sisa quantity yang belum digenerate.
         """
+        # memastikan hanya 1 record yang diproses
         self.ensure_one()
         
         # Validasi: hanya untuk Receipt (incoming)
@@ -30,7 +38,7 @@ class StockPicking(models.Model):
         if self.state not in ('assigned', 'done'):
             raise UserError(_('Receipt harus dalam status Ready atau Done untuk generate barcode.'))
         
-        # Ambil data vendor
+        # Ambil data vendor (partner) dari receipt
         vendor = self.partner_id
         if not vendor:
             raise UserError(_('Vendor tidak ditemukan pada Receipt ini.'))
@@ -133,7 +141,7 @@ class StockPicking(models.Model):
                 }
             }
         
-        # Tampilkan notifikasi sukses
+        # Tampilkan notifikasi sukses dan refresh view
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -153,11 +161,13 @@ class StockPicking(models.Model):
             }
         }
 
+    # function untuk print all barcode
     def action_print_all_barcodes(self):
         """
         Print semua barcode dengan status_product = 'waiting' dan print_status = 'not_printed'
         pada receipt ini, kemudian update print_status menjadi 'printed'
         """
+        # memastikan hanya 1 record yang diproses
         self.ensure_one()
         
         # Validasi: hanya untuk Receipt (incoming)

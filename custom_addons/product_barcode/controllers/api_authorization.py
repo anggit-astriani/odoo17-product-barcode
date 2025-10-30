@@ -210,62 +210,62 @@ class ApiAuthorization(http.Controller):
             return request.make_json_response(response, status=500)
     
     
-    @http.route('/api/auth/verify', type='http', auth='public', methods=['POST', 'GET'], csrf=False)
-    def verify_token(self, **kwargs):
-        """
-        API endpoint untuk verify bearer token
+    # @http.route('/api/auth/verify', type='http', auth='public', methods=['POST', 'GET'], csrf=False)
+    # def verify_token(self, **kwargs):
+    #     """
+    #     API endpoint untuk verify bearer token
         
-        Headers:
-        Authorization: Bearer {access_token}
-        """
-        try:
-            # Get token from header
-            auth_header = request.httprequest.headers.get('Authorization')
+    #     Headers:
+    #     Authorization: Bearer {access_token}
+    #     """
+    #     try:
+    #         # Get token from header
+    #         auth_header = request.httprequest.headers.get('Authorization')
             
-            if not auth_header or not auth_header.startswith('Bearer '):
-                response = {
-                    'success': False,
-                    'message': 'No token provided',
-                    'error': 'missing_token'
-                }
-                return request.make_json_response(response, status=401)
+    #         if not auth_header or not auth_header.startswith('Bearer '):
+    #             response = {
+    #                 'success': False,
+    #                 'message': 'No token provided',
+    #                 'error': 'missing_token'
+    #             }
+    #             return request.make_json_response(response, status=401)
             
-            token = auth_header.replace('Bearer ', '')
+    #         token = auth_header.replace('Bearer ', '')
             
-            # Verify token
-            token_record = request.env['api.access.token'].sudo().search([
-                ('token', '=', token),
-                ('expires', '>', datetime.now())
-            ], limit=1)
+    #         # Verify token
+    #         token_record = request.env['api.access.token'].sudo().search([
+    #             ('token', '=', token),
+    #             ('expires', '>', datetime.now())
+    #         ], limit=1)
             
-            if token_record:
-                user = token_record.user_id
-                response = {
-                    'success': True,
-                    'message': 'Token is valid',
-                    'data': {
-                        'user_id': user.id,
-                        'username': user.login,
-                        'name': user.name,
-                        'expires': token_record.expires.isoformat()
-                    }
-                }
-                return request.make_json_response(response, status=200)
-            else:
-                response = {
-                    'success': False,
-                    'message': 'Invalid or expired token',
-                    'error': 'invalid_token'
-                }
-                return request.make_json_response(response, status=401)
+    #         if token_record:
+    #             user = token_record.user_id
+    #             response = {
+    #                 'success': True,
+    #                 'message': 'Token is valid',
+    #                 'data': {
+    #                     'user_id': user.id,
+    #                     'username': user.login,
+    #                     'name': user.name,
+    #                     'expires': token_record.expires.isoformat()
+    #                 }
+    #             }
+    #             return request.make_json_response(response, status=200)
+    #         else:
+    #             response = {
+    #                 'success': False,
+    #                 'message': 'Invalid or expired token',
+    #                 'error': 'invalid_token'
+    #             }
+    #             return request.make_json_response(response, status=401)
                 
-        except Exception as e:
-            response = {
-                'success': False,
-                'message': str(e),
-                'error': 'server_error'
-            }
-            return request.make_json_response(response, status=500)
+    #     except Exception as e:
+    #         response = {
+    #             'success': False,
+    #             'message': str(e),
+    #             'error': 'server_error'
+    #         }
+    #         return request.make_json_response(response, status=500)
 
 
 # Middleware untuk protected routes

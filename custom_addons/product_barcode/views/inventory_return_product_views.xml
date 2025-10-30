@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Tree View -->
+    <!-- Tree View return product-->
     <record id="view_inventory_return_product_tree" model="ir.ui.view">
         <field name="name">inventory.return.product.tree</field>
         <field name="model">inventory.return.product</field>
@@ -25,22 +25,27 @@
         </field>
     </record>
 
-    <!-- Form View -->
+    <!-- Form View return product -->
     <record id="view_inventory_return_product_form" model="ir.ui.view">
         <field name="name">inventory.return.product.form</field>
         <field name="model">inventory.return.product</field>
         <field name="arch" type="xml">
             <form string="Product Return">
                 <header>
+                    <!-- button action form akan tampil pada return dengan draft -->
                     <button name="action_confirm" string="Confirm" type="object" 
                             class="oe_highlight" invisible="state != 'draft'"/>
+                    <!-- action process return akan tampil pada return dengan status confirmed -->
                     <button name="action_process_return" string="Process All Returns" type="object" 
                             class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <!-- action cancel akan tampil pada return yang statusnya bukan done dan cancel -->
                     <button name="action_cancel" string="Cancel" type="object" 
                             invisible="state in ['done', 'cancel']" 
                             confirm="Are you sure you want to cancel this return?"/>
+                    <!-- action draft akan tampil pada return yang statusnya bukan cancel -->
                     <button name="action_draft" string="Set to Draft" type="object" 
                             invisible="state != 'cancel'"/>
+                    <!-- ini adalah status bar yang ada pada return product -->
                     <field name="state" widget="statusbar" 
                            statusbar_visible="draft,confirmed,done"/>
                 </header>
@@ -51,6 +56,7 @@
                         </h1>
                     </div>
                     
+                    <!-- ini adalah form field dari class inventory return product -->
                     <group>
                         <group>
                             <field name="delivery_id" 
@@ -89,6 +95,7 @@
                                         string="Quantity (Actual - Affects Stock)"/>
                                     <field name="state" column_invisible="1"/>
                                 </tree>
+                                <!-- ini adalah page operation untuk mengisikan product, demand dan quantity dari return product -->
                                 <form string="Operation">
                                     <group>
                                         <group>
@@ -216,7 +223,7 @@
         </field>
     </record>
 
-    <!-- Action -->
+    <!-- Action dari menu return product -->
     <record id="action_inventory_return_product" model="ir.actions.act_window">
         <field name="name">Product Returns</field>
         <field name="res_model">inventory.return.product</field>
@@ -232,7 +239,7 @@
         </field>
     </record>
 
-    <!-- Menu -->
+    <!-- Menu dari return product yang ada pada inventory -->
     <menuitem id="menu_inventory_return_product"
               name="Product Returns"
               parent="stock.menu_stock_root"

@@ -2,57 +2,7 @@ from odoo import http
 from odoo.http import request, Response
 import json
 
-class BarcodeScanController(http.Controller):
-    # @http.route('/api/barcode/scan', type='json', auth='public', methods=['POST'], csrf=False)
-    # def scan_barcode(self, **params):
-    #     """
-    #     API untuk scan barcode dan ambil data produk dari receipt.
-    #     Input JSON:
-    #     {
-    #         "jsonrpc": "2.0",
-    #         "method": "call",
-    #         "params": {
-    #             "barcode": "12912001917624"
-    #         },
-    #         "id": 1
-    #         }
-    #     """
-    #     barcode = params.get('barcode')
-    #     if not barcode:
-    #         return {
-    #             "success": False,
-    #             "message": "Barcode is required"
-    #         }
-
-    #     # cari data barcode di model inventory.receipt.product.detail
-    #     detail = request.env['inventory.receipt.product.detail'].sudo().search(
-    #         [('barcode', '=', barcode)], limit=1
-    #     )
-
-    #     if not detail:
-    #         return {
-    #             "success": False,
-    #             "message": f"Barcode '{barcode}' not found"
-    #         }
-
-    #     # ambil data produk dari product_id
-    #     product = detail.product_id
-
-    #     return {
-    #         "success": True,
-    #         "message": "Barcode found",
-    #         "data": {
-    #             "barcode": detail.barcode,
-    #             "product_code": detail.code_product,
-    #             "product_name": product.name,
-    #             "purchase_price": product.standard_price,
-    #             "vendor": detail.vendor_id.name,
-    #             "vendor_code": detail.vendor_code,
-    #             "warehouse": detail.warehouse_id.name,
-    #             "receipt": detail.receipt_id.name,
-    #         }
-    #     }
-    
+class BarcodeScanController(http.Controller):    
 
     @http.route('/api/receipt/product_detail', type='http', auth='public', methods=['GET'], csrf=False)
     def get_receipt_product_detail(self, **params):
@@ -69,15 +19,6 @@ class BarcodeScanController(http.Controller):
                 status=400,
                 headers=[('Content-Type', 'application/json')]
             )
-
-        # try:
-        #     receipt_id = int(receipt_id)
-        # except ValueError:
-        #     return Response(
-        #         json.dumps({'error': 'receipt_id harus berupa angka'}),
-        #         status=400,
-        #         headers=[('Content-Type', 'application/json')]
-        #     )
 
         # Ambil data dari model
         records = request.env['inventory.receipt.product.detail'].sudo().search([('receipt_id', '=', receipt_id)])
@@ -118,6 +59,8 @@ class BarcodeScanController(http.Controller):
         """
         API GET untuk scan barcode dan ambil data produk dari receipt.
         Query parameter: ?barcode=12912001917624
+        Contoh pemanggilan:
+        GET /api/barcode/scan?barcode=12912001917624
         """
         barcode = params.get('barcode')
         if not barcode:

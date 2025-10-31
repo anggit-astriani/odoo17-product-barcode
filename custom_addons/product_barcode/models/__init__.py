@@ -12,3 +12,5 @@ from . import product_borrowing
 from . import product_borrowing_return_wizard
 from . import inventory_return_product
 from . import inventory_return_product_line
+from . import inventory_return_product_operation
+from . import api_access_token

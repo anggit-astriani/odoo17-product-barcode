@@ -17,6 +17,7 @@
     </record>
 
     <!-- Tree View khusus untuk menampilkan data available product -->
+    <!-- ini akan tampil pada inventory -> stock -> product -->
     <record id="view_inventory_receipt_product_detail_tree_available" model="ir.ui.view">
         <field name="name">inventory.receipt.product.detail.tree.available</field>
         <field name="model">inventory.receipt.product.detail</field>

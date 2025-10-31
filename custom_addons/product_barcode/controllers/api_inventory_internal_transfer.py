@@ -65,123 +65,6 @@ class ApiInventorunternalTransfer(http.Controller):
             status=200,
             headers=[('Content-Type', 'application/json')]
         )
-    
-
-    # @http.route('/api/internal-transfer/create', type='http', auth='public', methods=['POST'], csrf=False)
-    # def create_internal_transfer(self, **params):
-    #     """
-    #     Endpoint HTTP untuk create data internal transfer dari barcode product receipt.
-    #     Param:
-    #         POST /api/internal-transfer/create?barcode=1234567890
-    #     """
-    #     product_barcode = params.get('barcode')
-
-    #     if not product_barcode:
-    #         return Response(
-    #                 json.dumps({
-    #                     "status": "error",
-    #                     "message": "Missing required parameter: barcode",
-    #                     "code": "400"
-    #                 }),
-    #                 headers=[('Content-Type', 'application/json')],
-    #                 status=400
-    #             )
-
-    #     # --- Cari product detail ---
-    #     product_detail = request.env['inventory.receipt.product.detail'].sudo().search([
-    #         ('barcode', '=', product_barcode),
-    #         ('status_product', '=', 'available')
-    #     ], limit=1)
-
-    #     if not product_detail:
-    #         return Response(
-    #                 json.dumps({
-    #                     "status": "error",
-    #                     "message": f"Product with barcode '{product_barcode}' not found or not available.",
-    #                     "code": "404"
-    #                 }),
-    #                 headers=[('Content-Type', 'application/json')],
-    #                 status=404
-    #             )
-
-    #     from_wh = product_detail.warehouse_id
-    #     if not from_wh:
-    #         return Response(
-    #                 json.dumps({
-    #                     "status": "error",
-    #                     "message": "Warehouse asal produk tidak ditemukan.",
-    #                     "code": "400"
-    #                 }),
-    #                 headers=[('Content-Type', 'application/json')],
-    #                 status=400
-    #             )
-
-    #     # --- Cari dokumen internal transfer aktif ---
-    #     picking = request.env['stock.picking'].sudo().search([
-    #         ('picking_type_id.code', '=', 'internal'),
-    #         ('state', '=', 'draft'),
-    #         ('location_id', '=', from_wh.lot_stock_id.id)
-    #     ], order='id desc', limit=1)
-
-    #     if not picking:
-    #         return Response(
-    #                 json.dumps({
-    #                     "status": "error",
-    #                     "message": f"Tidak ada dokumen internal transfer aktif dari warehouse {from_wh.name}.",
-    #                     "code": "404"
-    #                 }),
-    #                 headers=[('Content-Type', 'application/json')],
-    #                 status=404
-    #             )
-
-    #     # --- Tentukan to warehouse ---
-    #     to_wh = request.env['stock.warehouse'].sudo().search([
-    #         ('lot_stock_id', '=', picking.location_dest_id.id)
-    #     ], limit=1)
-
-    #     if not to_wh:
-    #         return Response(
-    #                 json.dumps({
-    #                     "status": "error",
-    #                     "message": "Warehouse tujuan tidak ditemukan.",
-    #                     "code": "400"
-    #                 }),
-    #                 headers=[('Content-Type', 'application/json')],
-    #                 status=400
-    #             )
-
-    #     # --- Buat record internal transfer product detail ---
-    #     transfer = request.env['inventory.transfer.product.detail'].sudo().create({
-    #         'transfer_id': picking.id,
-    #         'product_detail_id': product_detail.id,
-    #         'from_warehouse_id': from_wh.id,
-    #         'to_warehouse_id': to_wh.id
-    #     })
-
-    #     # --- Update status product ---
-    #     product_detail.sudo().write({
-    #         'status_product': 'scanned',
-    #         'scan_process': 'transfer'
-    #     })
-
-    #     return Response(
-    #         json.dumps({
-    #             'status': 'success',
-    #             'message': f"Transfer created successfully with ID {transfer.id} on picking {picking.name}",
-    #             'data': {
-    #                 'transfer_id': transfer.id,
-    #                 'picking_name': picking.name,
-    #                 'barcode': product_detail.barcode,
-    #                 'product_id': product_detail.product_id.id if product_detail.product_id else '',
-    #                 'product_name': product_detail.product_id.display_name if product_detail.product_id else '',
-    #                 'from_warehouse': from_wh.name,
-    #                 'to_warehouse': to_wh.name,
-    #                 'status_product': product_detail.status_product
-    #             }
-    #         }),
-    #             headers=[('Content-Type', 'application/json')],
-    #             status=200
-    #         )
 
 
     @http.route('/api/internal-transfer/create', type='http', auth='public', methods=['POST'], csrf=False)
@@ -322,6 +205,16 @@ class ApiInventorunternalTransfer(http.Controller):
 
     @http.route('/api/internal-transfer/transfer-product', type='http', auth='public', methods=['PATCH'], csrf=False)
     def transfer_product(self):
+        """
+        Contoh Pemanggilan:
+        Param:
+            PATCH /api/internal-transfer/transfer-product
+        Body (JSON):
+        {
+            "transfer_id": "WH/INT/00010",
+            "barcodes": ["1234567890", "0987654321"]
+        }
+        """
         try:
             # --- Ambil dan parse JSON dari body ---
             raw_data = request.httprequest.data
@@ -410,72 +303,3 @@ class ApiInventorunternalTransfer(http.Controller):
                 headers=[('Content-Type', 'application/json')],
                 status=500
             )
-        
-    
-    # @http.route('/api/internal-transfer/validate-transfer-product', type='http', auth='public', methods=['PATCH'], csrf=False)
-    # def validate_transfer_product(self):
-    #     try:
-    #         # --- Ambil dan parse JSON dari body ---
-    #         raw_data = request.httprequest.data
-    #         try:
-    #             payload = json.loads(raw_data)
-    #         except Exception:
-    #             raise ValidationError(_("Format JSON tidak valid."))
-
-    #         transfer_id_str = payload.get('transfer_id')
-
-    #         # --- Cari dokumen internal transfer ---
-    #         picking = request.env['stock.picking'].sudo().search([
-    #             ('name', '=', transfer_id_str),
-    #             ('picking_type_id.code', '=', 'internal')
-    #         ], limit=1)
-
-    #         if not picking:
-    #             raise UserError(_("Transfer ID %s tidak ditemukan.") % transfer_id_str)
-
-    #         # --- Jalankan tombol Mark as Todo jika belum done/cancel ---
-    #         try:
-    #             if picking.state not in ('done', 'cancel'):
-    #                 picking.action_confirm()
-    #         except Exception as e:
-    #             return Response(
-    #                 json.dumps({
-    #                     "status": "error",
-    #                     "message": f"Failed to validate picking: {str(e)}",
-    #                     "code": "500"
-    #                 }),
-    #                 headers=[('Content-Type', 'application/json')],
-    #                 status=500
-    #             )
-
-    #         # --- Cari transfer detail ---
-    #         transfer_details = request.env['inventory.transfer.product.detail'].sudo().search([
-    #             ('transfer_id', '=', picking.id),
-    #         ])
-
-    #         if not transfer_details:
-    #             raise UserError(_("Tidak ada data transfer product detail yang cocok dengan barcode tersebut."))
-
-    #         return Response(
-    #             json.dumps({
-    #                 "status": "success",
-    #                 "message": "Informasi detail product transfer berhasil dibuat.",
-    #                 "data": {
-    #                     "transfer_id": transfer_id_str
-    #                 }
-                    
-    #             }),
-    #             headers=[('Content-Type', 'application/json')],
-    #             status=200
-    #         )
-
-    #     except Exception as e:
-    #         return Response(
-    #             json.dumps({
-    #                 "status": "error",
-    #                 "message": str(e),
-    #                 "code": "500"
-    #             }),
-    #             headers=[('Content-Type', 'application/json')],
-    #             status=500
-    #         )

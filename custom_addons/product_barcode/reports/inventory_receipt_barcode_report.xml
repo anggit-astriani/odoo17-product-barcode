@@ -129,7 +129,7 @@
             </t>
         </template>
 
-        <!-- Report Action Definition -->
+        <!-- Report Action Definition. record id akan dipanggil pada class stock picking fucntion print barcode-->
         <record id="action_report_inventory_barcode" model="ir.actions.report">
             <field name="name">Product Barcode Label</field>
             <field name="model">inventory.receipt.product.detail</field>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Tree View -->
+    <!-- Tree View return product-->
     <record id="view_inventory_return_product_tree" model="ir.ui.view">
         <field name="name">inventory.return.product.tree</field>
         <field name="model">inventory.return.product</field>
@@ -25,46 +25,38 @@
         </field>
     </record>
 
-    <!-- Form View -->
+    <!-- Form View return product -->
     <record id="view_inventory_return_product_form" model="ir.ui.view">
         <field name="name">inventory.return.product.form</field>
         <field name="model">inventory.return.product</field>
         <field name="arch" type="xml">
             <form string="Product Return">
                 <header>
+                    <!-- button action form akan tampil pada return dengan draft -->
                     <button name="action_confirm" string="Confirm" type="object" 
                             class="oe_highlight" invisible="state != 'draft'"/>
+                    <!-- action process return akan tampil pada return dengan status confirmed -->
                     <button name="action_process_return" string="Process All Returns" type="object" 
                             class="oe_highlight" invisible="state != 'confirmed'"/>
-                    <!-- <button name="action_done" string="Mark as Done" type="object" 
-                            class="oe_highlight" invisible="state != 'confirmed'"/> -->
+                    <!-- action cancel akan tampil pada return yang statusnya bukan done dan cancel -->
                     <button name="action_cancel" string="Cancel" type="object" 
                             invisible="state in ['done', 'cancel']" 
                             confirm="Are you sure you want to cancel this return?"/>
+                    <!-- action draft akan tampil pada return yang statusnya bukan cancel -->
                     <button name="action_draft" string="Set to Draft" type="object" 
                             invisible="state != 'cancel'"/>
+                    <!-- ini adalah status bar yang ada pada return product -->
                     <field name="state" widget="statusbar" 
                            statusbar_visible="draft,confirmed,done"/>
                 </header>
                 <sheet>
-                    <!-- <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" type="object" name="action_process_return"
-                                icon="fa-refresh" invisible="state != 'confirmed'">
-                            <div class="o_field_widget o_stat_info">
-                                <span class="o_stat_value">
-                                    <field name="returned_count"/> / <field name="total_lines"/>
-                                </span>
-                                <span class="o_stat_text">Processed</span>
-                            </div>
-                        </button>
-                    </div> -->
-                    
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
                     
+                    <!-- ini adalah form field dari class inventory return product -->
                     <group>
                         <group>
                             <field name="delivery_id" 
@@ -82,7 +74,59 @@
                     </group>
                     
                     <notebook>
+                    <!-- Tab 1: Operations (Stock Movement) -->
+                        <page string="Operations" name="operations">
+                            <div class="alert alert-success" role="alert">
+                                <strong>Operations:</strong> Tab ini menampilkan ringkasan produk yang akan di-return dan mempengaruhi stock warehouse.<br/>
+                                - <strong>Demand:</strong> Jumlah yang diharapkan untuk di-return (dapat diinput manual sebagai referensi)<br/>
+                                - <strong>Quantity:</strong> Jumlah aktual produk yang di-scan - <strong>INI YANG AKAN MEMPENGARUHI STOCK</strong><br/>
+                                Operations akan otomatis ter-generate setelah <strong>Confirm</strong>.
+                            </div>
+                            <field name="operation_ids" 
+                                readonly="state in ['done', 'cancel']">
+                                <tree editable="bottom" create="0" delete="0" 
+                                    decoration-warning="quantity != demand"
+                                    decoration-success="quantity == demand">
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="demand" 
+                                        string="Demand (Expected)"
+                                        readonly="state in ['done', 'cancel']"/>
+                                    <field name="quantity" readonly="1" 
+                                        string="Quantity (Actual - Affects Stock)"/>
+                                    <field name="state" column_invisible="1"/>
+                                </tree>
+                                <!-- ini adalah page operation untuk mengisikan product, demand dan quantity dari return product -->
+                                <form string="Operation">
+                                    <group>
+                                        <group>
+                                            <field name="product_id" readonly="1"/>
+                                            <field name="demand" 
+                                                readonly="state in ['done', 'cancel']"/>
+                                        </group>
+                                        <group>
+                                            <field name="quantity" readonly="1"/>
+                                            <field name="state" invisible="1"/>
+                                        </group>
+                                    </group>
+                                    <div class="alert alert-warning" role="alert" 
+                                        invisible="quantity == demand">
+                                        <strong>Warning:</strong> Quantity berbeda dengan Demand!<br/>
+                                        Stock akan diupdate berdasarkan <strong>Quantity</strong> (<field name="quantity" readonly="1"/> unit).
+                                    </div>
+                                    <div class="alert alert-success" role="alert" 
+                                        invisible="quantity != demand">
+                                        <strong>OK:</strong> Quantity sesuai dengan Demand.
+                                    </div>
+                                </form>
+                            </field>
+                        </page>
+
+                        <!-- Tab 2: Return Items (Scan Barcode) -->
                         <page string="Return Items" name="return_items">
+                            <div class="alert alert-info" role="alert">
+                                <strong>Scan Barcode:</strong> Scan barcode produk yang akan di-return. 
+                                Setelah semua barcode di-scan, klik <strong>Confirm</strong> untuk generate Operations.
+                            </div>
                             <field name="line_ids" 
                                    context="{'default_return_id': active_id}"
                                    readonly="state in ['done', 'cancel']">
@@ -94,16 +138,12 @@
                                     <field name="warehouse_id" readonly="1" optional="hide"/>
                                     <field name="condition" required="1"/>
                                     <field name="return_reason" required="1"/>
-                                    <!-- <field name="action_type" required="1"/> -->
                                     <field name="destination_location" readonly="1"/>
                                     <field name="new_status" readonly="1"/>
                                     <field name="notes"/>
                                     <field name="is_processed" readonly="1"/>
                                     <field name="processed_date" readonly="1" optional="hide"/>
                                     <field name="state" column_invisible="1"/>
-                                    <!-- <button name="action_process_return" string="Process" type="object" 
-                                            icon="fa-check" invisible="is_processed or state != 'confirmed'" 
-                                            confirm="Process return untuk item ini?"/> -->
                                 </tree>
                                 <form string="Return Item">
                                     <sheet>
@@ -118,7 +158,6 @@
                                             <group>
                                                 <field name="condition" widget="radio"/>
                                                 <field name="return_reason"/>
-                                                <!-- <field name="action_type"/> -->
                                                 <field name="destination_location" readonly="1"/>
                                                 <field name="new_status" readonly="1"/>
                                             </group>
@@ -140,6 +179,7 @@
                             </field>
                         </page>
                         
+                        <!-- Tab 3: Notes -->
                         <page string="Notes" name="notes">
                             <field name="notes" placeholder="Catatan umum untuk return ini..."/>
                         </page>
@@ -183,7 +223,7 @@
         </field>
     </record>
 
-    <!-- Action -->
+    <!-- Action dari menu return product -->
     <record id="action_inventory_return_product" model="ir.actions.act_window">
         <field name="name">Product Returns</field>
         <field name="res_model">inventory.return.product</field>
@@ -199,7 +239,7 @@
         </field>
     </record>
 
-    <!-- Menu -->
+    <!-- Menu dari return product yang ada pada inventory -->
     <menuitem id="menu_inventory_return_product"
               name="Product Returns"
               parent="stock.menu_stock_root"

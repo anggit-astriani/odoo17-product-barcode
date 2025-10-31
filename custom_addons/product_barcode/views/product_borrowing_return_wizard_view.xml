@@ -1,47 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File View untuk Product Borrowing Return Wizard
+    Interface untuk proses pengembalian produk yang dipinjam
+-->
 <odoo>
+    <!-- ========================= FORM VIEW WIZARD ========================= -->
+    <!-- Tampilan form wizard untuk input kondisi return -->
     <record id="view_product_borrowing_return_wizard_form" model="ir.ui.view">
         <field name="name">product.borrowing.return.wizard.form</field>
         <field name="model">product.borrowing.return.wizard</field>
         <field name="arch" type="xml">
+            <!-- Class oe_form_boxed untuk tampilan boxed/card style -->
             <form string="Return Borrowed Products" class="oe_form_boxed">
                 <sheet>
-                    <!-- Header -->
+                    <!-- HEADER: Menampilkan borrowing number -->
                     <h3>
+                        <!-- Borrowing ID readonly dengan class oe_inline -->
                         <field name="borrowing_id" readonly="1" class="oe_inline"/>
                     </h3>
 
-                    <!-- Return Date -->
+                    <!-- Return Date: Field untuk input tanggal pengembalian -->
+                    <!-- Group col="2" untuk layout 2 kolom -->
                     <group col="2" class="mb-3">
                         <field name="return_date" required="1"/>
                     </group>
 
-                    <!-- Notes full width -->
+                    <!-- Notes Section: Catatan umum untuk semua item -->
+                    <!-- colspan="2" untuk menggunakan full width -->
                     <group string="Return Notes" colspan="2">
                         <field name="notes" nolabel="1" colspan="2"
                                placeholder="Add general return notes (applies to all returned items)..."
                                style="width:100%; height:100px;"/>
                     </group>
 
+                    <!-- Separator: Garis pemisah sebelum list items -->
                     <separator string="Items to Return" colspan="2"/>
 
-                    <!-- Lines -->
+                    <!-- LINES: One2many field untuk detail items -->
+                    <!-- nolabel="1" untuk hide label field -->
                     <field name="line_ids" nolabel="1">
+                        <!-- 
+                            Tree editable="bottom": Edit di baris paling bawah
+                             User bisa langsung edit di tree tanpa open form
+                        -->
                         <tree editable="bottom" string="Items to Return">
+                            <!-- Checkbox: Apakah item ini akan di-return -->
                             <field name="to_return" widget="boolean_toggle" string="Return?"/>
+                            
+                            <!-- Barcode: Readonly, hanya untuk display -->
                             <field name="barcode" readonly="1"/>
+                            
+                            <!-- Product: Readonly, hanya untuk display -->
                             <field name="product_id" readonly="1"/>
+                            
+                            <!-- Return Condition: User bisa pilih kondisi return -->
                             <field name="return_condition"/>
+                            
+                            <!-- Return Notes: User bisa input notes per item -->
                             <field name="return_notes"/>
+                            
+                            <!-- 
+                                Borrowing Line ID: Hidden field
+                                invisible="1" = tidak tampil di tree
+                                optional="hide" = tidak tampil di optional columns
+                            -->
                             <field name="borrowing_line_id" invisible="1" optional="hide"/>
                         </tree>
                     </field>
 
+                    <!-- FOOTER: Buttons untuk action -->
                     <footer>
+                        <!-- Button Process Return: Primary button -->
                         <button name="action_process_return"
                                 string="Process Return"
                                 type="object"
                                 class="btn-primary"/>
+                        
+                        <!-- Button Cancel: Close wizard tanpa action -->
                         <button string="Cancel"
                                 special="cancel"
                                 class="btn-secondary"/>
@@ -51,12 +86,13 @@
         </field>
     </record>
 
-    <!-- Action -->
+    <!-- ========================= ACTION ========================= -->
+    <!-- Definisi action untuk open wizard -->
     <record id="action_product_borrowing_return_wizard" model="ir.actions.act_window">
         <field name="name">Return Borrowed Products</field>
         <field name="res_model">product.borrowing.return.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">new</field>  <!-- target="new" = open sebagai modal/popup -->
         <field name="view_id" ref="view_product_borrowing_return_wizard_form"/>
     </record>
 </odoo>

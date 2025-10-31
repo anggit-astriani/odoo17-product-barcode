@@ -1,14 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File Data untuk Stock Opname
+    Tujuan: Definisi sequence untuk auto-generate nomor opname
+-->
 <odoo>
+    <!-- 
+        noupdate="1": Data ini hanya dibuat saat install module
+        Tidak akan di-update saat upgrade module
+    -->
     <data noupdate="1">
-        <!-- Sequence for Stock Opname -->
         <record id="seq_stock_opname" model="ir.sequence">
+            <!-- Name: Nama sequence untuk identifikasi di UI -->
             <field name="name">Stock Opname Sequence</field>
+            
+            <!-- 
+                Code: Kode unik untuk dipanggil di Python
+                Dipanggil dengan: self.env['ir.sequence'].next_by_code('stock.opname')
+            -->
             <field name="code">stock.opname</field>
+            
+            <!-- 
+                Prefix: Awalan nomor sequence
+                SOP = Stock OPname
+            -->
             <field name="prefix">SOP/</field>
+            
+            <!-- 
+                Padding: Jumlah digit angka setelah prefix
+                5 digit = 00001, 00002, 00003, dst
+            -->
             <field name="padding">5</field>
+            
+            <!-- 
+                Number Next: Nomor awal sequence
+                Start dari 1
+            -->
             <field name="number_next">1</field>
+            
+            <!-- 
+                Number Increment: Penambahan setiap kali generate
+                1 = increment +1 setiap kali
+            -->
             <field name="number_increment">1</field>
+            
+            <!-- 
+                Contoh hasil generate:
+                - SOP/00001
+                - SOP/00002
+                - SOP/00003
+                - SOP/00004
+                - dst...
+            -->
         </record>
     </data>
 </odoo>

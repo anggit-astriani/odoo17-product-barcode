@@ -1,32 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File Report Template untuk Product Borrowing
+    Template PDF untuk dokumen peminjaman produk
+-->
 <odoo>
-    <!-- Borrowing Document Report Template -->
     <template id="report_product_borrowing_document">
+        <!-- 
+            t-call="web.html_container": Wrapper utama untuk report
+            Menyediakan struktur HTML dasar
+        -->
         <t t-call="web.html_container">
+            <!-- 
+                t-foreach="docs": Loop setiap borrowing record
+                docs = recordset yang dikirim dari action report
+            -->
             <t t-foreach="docs" t-as="o">
+                <!-- 
+                    t-call="web.external_layout": Layout eksternal (header/footer company)
+                    Include company header, footer, dan styling
+                -->
                 <t t-call="web.external_layout">
+                    <!-- div.page: Container utama untuk content -->
                     <div class="page">
-                        <!-- Header -->
+                        
+                        <!-- ===== HEADER TITLE ===== -->
                         <div class="text-center">
                             <h2>PRODUCT BORROWING DOCUMENT</h2>
                         </div>
 
                         <br/>
 
-                        <!-- Borrowing Barcode -->
+                        <!-- ===== BORROWING BARCODE ===== -->
+                        <!-- Tujuan: Display barcode untuk scanning -->
                         <div class="text-center" style="margin-bottom: 20px;">
+                            <!-- t-if: Conditional rendering, hanya tampil jika ada barcode -->
                             <t t-if="o.borrowing_barcode">
+                                <!-- 
+                                    Generate barcode image menggunakan Odoo barcode generator
+                                    - type=Code128: Format barcode
+                                    - value: Nilai yang di-encode
+                                    - width/height: Dimensi barcode
+                                    - humanreadable=1: Tampilkan text di bawah barcode
+                                -->
                                 <img t-att-src="'/report/barcode/?type=Code128&amp;value=%s&amp;width=600&amp;height=100&amp;humanreadable=1' % o.borrowing_barcode"
                                      style="max-width:400px; height:auto;"/>
                             </t>
                         </div>
 
-                        <!-- Borrowing Information -->
+                        <!-- ===== BORROWING INFORMATION ===== -->
+                        <!-- Layout 2 kolom menggunakan Bootstrap row/col -->
                         <div class="row">
+                            <!-- Kolom Kiri: Info Borrowing -->
                             <div class="col-6">
                                 <table class="table table-sm table-borderless">
                                     <tr>
                                         <td><strong>Borrowing Number:</strong></td>
+                                        <!-- t-field: Render field dengan formatting -->
                                         <td><span t-field="o.name"/></td>
                                     </tr>
                                     <tr>
@@ -39,6 +68,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Duration:</strong></td>
+                                        <!-- t-esc: Escape dan render value -->
                                         <td><span t-esc="o.duration_days"/> days</td>
                                     </tr>
                                     <tr>
@@ -47,6 +77,8 @@
                                     </tr>
                                 </table>
                             </div>
+                            
+                            <!-- Kolom Kanan: Info Borrower -->
                             <div class="col-6">
                                 <table class="table table-sm table-borderless">
                                     <tr>
@@ -75,7 +107,7 @@
 
                         <br/>
 
-                        <!-- Purpose -->
+                        <!-- ===== PURPOSE ===== -->
                         <div class="row">
                             <div class="col-12">
                                 <strong>Purpose/Reason:</strong>
@@ -85,9 +117,10 @@
 
                         <br/>
 
-                        <!-- Borrowed Products -->
+                        <!-- ===== BORROWED PRODUCTS TABLE ===== -->
                         <h4>Borrowed Products</h4>
                         <table class="table table-sm table-bordered">
+                            <!-- Table Header dengan background color -->
                             <thead style="background-color: #4472C4; color: white;">
                                 <tr>
                                     <th class="text-center">No</th>
@@ -99,7 +132,16 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <!-- 
+                                    t-set: Set variable untuk line number
+                                    t-value="1": Initial value = 1
+                                -->
                                 <t t-set="line_no" t-value="1"/>
+                                
+                                <!-- 
+                                    t-foreach: Loop borrowing lines
+                                    t-as="line": Variable untuk setiap line
+                                -->
                                 <tr t-foreach="o.line_ids" t-as="line">
                                     <td class="text-center"><span t-esc="line_no"/></td>
                                     <td><span t-field="line.barcode"/></td>
@@ -107,6 +149,8 @@
                                     <td><span t-field="line.product_id.name"/></td>
                                     <td><span t-field="line.borrow_condition"/></td>
                                     <td><span t-field="line.borrow_notes"/></td>
+                                    
+                                    <!-- Increment line number -->
                                     <t t-set="line_no" t-value="line_no + 1"/>
                                 </tr>
                             </tbody>
@@ -115,8 +159,9 @@
                         <br/>
                         <br/>
 
-                        <!-- Signatures -->
+                        <!-- ===== SIGNATURES ===== -->
                         <div class="row" style="margin-top: 50px;">
+                            <!-- Signature Borrower -->
                             <div class="col-6 text-center">
                                 <p>Borrower</p>
                                 <br/>
@@ -125,6 +170,8 @@
                                 <p>_______________________</p>
                                 <p><span t-field="o.borrower_name"/></p>
                             </div>
+                            
+                            <!-- Signature Authorized -->
                             <div class="col-6 text-center">
                                 <p>Authorized By</p>
                                 <br/>
@@ -135,7 +182,7 @@
                             </div>
                         </div>
 
-                        <!-- Terms and Conditions -->
+                        <!-- ===== TERMS AND CONDITIONS ===== -->
                         <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px;">
                             <small>
                                 <strong>Terms and Conditions:</strong><br/>
@@ -152,15 +199,34 @@
         </t>
     </template>
 
-    <!-- Report Action Definition -->
+    <!-- ========================= REPORT ACTION DEFINITION ========================= -->
+    <!-- 
+        Tujuan: Definisi report action untuk generate PDF
+        Report action ini yang dipanggil dari button "Print Document"
+    -->
     <record id="action_report_product_borrowing" model="ir.actions.report">
+        <!-- Name: Nama report di UI -->
         <field name="name">Borrowing Document</field>
+        
+        <!-- Model: Model yang akan di-report -->
         <field name="model">product.borrowing</field>
+        
+        <!-- Report Type: qweb-pdf untuk generate PDF -->
         <field name="report_type">qweb-pdf</field>
+        
+        <!-- Report Name: Reference ke template QWeb -->
         <field name="report_name">product_barcode.report_product_borrowing_document</field>
+        
+        <!-- Report File: Nama file untuk reference internal -->
         <field name="report_file">product_barcode.report_product_borrowing_document</field>
+        
+        <!-- Binding Model ID: Binding ke model (untuk right-click print) -->
         <field name="binding_model_id" ref="model_product_borrowing"/>
+        
+        <!-- Binding Type: Tipe binding (report) -->
         <field name="binding_type">report</field>
+        
+        <!-- Paper Format: Format kertas (A4 euro) -->
         <field name="paperformat_id" ref="base.paperformat_euro"/>
     </record>
 </odoo>

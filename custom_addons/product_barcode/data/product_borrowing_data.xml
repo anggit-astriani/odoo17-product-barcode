@@ -1,26 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File Data untuk Product Borrowing
+    Tujuan: Definisi data master (sequence dan cron job)
+-->
 <odoo>
+    <!-- 
+        noupdate="1": Data ini hanya dibuat saat install module, tidak di-update saat upgrade
+        Berguna untuk data yang mungkin di-customize oleh user
+    -->
     <data noupdate="1">
-        <!-- Sequence for Product Borrowing -->
+        
+        <!-- ========================= SEQUENCE ========================= -->
+        <!-- 
+            Tujuan: Auto-generate nomor borrowing
+            Digunakan oleh: product.borrowing model saat create
+        -->
         <record id="seq_product_borrowing" model="ir.sequence">
+            <!-- Name: Nama sequence untuk identifikasi -->
             <field name="name">Product Borrowing Sequence</field>
+            
+            <!-- Code: Kode unik untuk dipanggil di Python -->
+            <!-- Dipanggil dengan: self.env['ir.sequence'].next_by_code('product.borrowing') -->
             <field name="code">product.borrowing</field>
+            
+            <!-- Prefix: Awalan nomor (BRW/) -->
             <field name="prefix">BRW/</field>
+            
+            <!-- Padding: Jumlah digit angka (5 digit = 00001, 00002, dst) -->
             <field name="padding">5</field>
+            
+            <!-- Number Next: Nomor awal sequence -->
             <field name="number_next">1</field>
+            
+            <!-- Number Increment: Increment setiap generate (biasanya 1) -->
             <field name="number_increment">1</field>
+            
+            <!-- 
+                Hasil generate:
+                - BRW/00001
+                - BRW/00002
+                - BRW/00003
+                - dst...
+            -->
         </record>
 
-        <!-- Cron Job for Checking Overdue Borrowings -->
+        <!-- ========================= CRON JOB ========================= -->
+        <!-- 
+            Tujuan: Scheduled action untuk check overdue borrowings
+            Dijalankan otomatis oleh Odoo scheduler
+        -->
         <record id="cron_check_overdue_borrowings" model="ir.cron">
+            <!-- Name: Nama cron job -->
             <field name="name">Check Overdue Product Borrowings</field>
+            
+            <!-- Model ID: Model yang akan dipanggil -->
+            <!-- ref= untuk reference ke model product.borrowing -->
             <field name="model_id" ref="model_product_borrowing"/>
+            
+            <!-- State: Tipe cron (code = execute Python code) -->
             <field name="state">code</field>
+            
+            <!-- Code: Python code yang akan dijalankan -->
+            <!-- model = self.env['product.borrowing'] -->
+            <!-- Memanggil method _cron_check_overdue() -->
             <field name="code">model._cron_check_overdue()</field>
+            
+            <!-- Interval Number: Jumlah interval (1) -->
             <field name="interval_number">1</field>
+            
+            <!-- Interval Type: Tipe interval (days = hari) -->
+            <!-- Kombinasi: 1 days = setiap 1 hari -->
             <field name="interval_type">days</field>
+            
+            <!-- Numbercall: Berapa kali akan dijalankan -->
+            <!-- -1 = unlimited (run forever) -->
             <field name="numbercall">-1</field>
+            
+            <!-- Active: Status cron (True = aktif) -->
             <field name="active" eval="True"/>
+            
         </record>
     </data>
 </odoo>

@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+    File View untuk Product Borrowing
+    Berisi definisi tampilan (tree, form, search) dan menu untuk modul peminjaman produk
+-->
 <odoo>
     <!-- ========================= TREE VIEW ========================= -->
+    <!-- Tampilan list/tabel untuk semua borrowing records -->
     <record id="view_product_borrowing_tree" model="ir.ui.view">
         <field name="name">product.borrowing.tree</field>
         <field name="model">product.borrowing</field>
         <field name="arch" type="xml">
+            <!-- 
+                Tree widget dengan decoration (conditional formatting):
+                - decoration-info: Warna biru untuk draft
+                - decoration-primary: Warna primary untuk confirmed
+                - decoration-warning: Warna kuning untuk borrowed
+                - decoration-danger: Warna merah untuk overdue
+                - decoration-success: Warna hijau untuk returned
+                - decoration-muted: Warna abu untuk cancel
+            -->
             <tree string="Product Borrowing"
                   decoration-info="state == 'draft'"
                   decoration-primary="state == 'confirmed'"
@@ -13,58 +27,73 @@
                   decoration-success="state == 'returned'"
                   decoration-muted="state == 'cancel'">
 
-                <field name="name"/>
-                <field name="borrower_name"/>
-                <field name="borrow_date"/>
-                <field name="due_date"/>
-                <field name="duration_days"/>
-                <field name="total_items"/>
-                <field name="total_returned"/>
-                <field name="warehouse_id"/>
-                <field name="is_overdue" invisible="1"/>
-                <field name="state" widget="badge"/>
+                <field name="name"/>                 <!-- Nomor borrowing -->
+                <field name="borrower_name"/>        <!-- Nama peminjam -->
+                <field name="borrow_date"/>          <!-- Tanggal pinjam -->
+                <field name="due_date"/>             <!-- Tanggal jatuh tempo -->
+                <field name="duration_days"/>        <!-- Durasi dalam hari -->
+                <field name="total_items"/>          <!-- Total item dipinjam -->
+                <field name="total_returned"/>       <!-- Total sudah dikembalikan -->
+                <field name="warehouse_id"/>         <!-- Warehouse -->
+                <field name="is_overdue" invisible="1"/>  <!-- Hidden field untuk decoration -->
+                <field name="state" widget="badge"/>  <!-- Status dengan widget badge -->
             </tree>
         </field>
     </record>
 
     <!-- ========================= FORM VIEW ========================= -->
+    <!-- Tampilan detail/form untuk create/edit borrowing -->
     <record id="view_product_borrowing_form" model="ir.ui.view">
         <field name="name">product.borrowing.form</field>
         <field name="model">product.borrowing</field>
         <field name="arch" type="xml">
             <form string="Product Borrowing" class="o_form_full">
+                <!-- HEADER: Berisi tombol actions dan statusbar -->
                 <header>
+                    <!-- Button Confirm: Hanya tampil di state draft -->
                     <button name="action_confirm" string="Confirm" type="object"
                             class="oe_highlight"
                             invisible="state != 'draft'"/>
+                    
+                    <!-- Button Mark as Borrowed: Hanya tampil di state confirmed -->
                     <button name="action_borrow" string="Mark as Borrowed" type="object"
                             class="oe_highlight"
                             invisible="state != 'confirmed'"/>
+                    
+                    <!-- Button Process Return: Hanya tampil di state borrowed/overdue -->
                     <button name="action_return" string="Process Return" type="object"
                             class="btn-primary"
                             invisible="state not in ('borrowed','overdue')"/>
+                    
+                    <!-- Button Print Document: Tampil setelah state bukan draft -->
                     <button name="action_print_borrowing_document" string="Print Document" type="object"
                             class="btn-secondary"
                             invisible="state == 'draft'"/>
+                    
+                    <!-- Button Cancel: Tampil sebelum returned/cancel -->
                     <button name="action_cancel" string="Cancel" type="object"
                             invisible="state in ('returned','cancel')"/>
+                    
+                    <!-- Statusbar: Visual status workflow -->
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,confirmed,borrowed,returned"/>
                 </header>
 
                 <sheet>
-                    <!-- Title -->
+                    <!-- Title: Menampilkan nomor borrowing -->
                     <div class="oe_title mb-3">
                         <h2><field name="name" readonly="1"/></h2>
                     </div>
 
-                    <!-- Overdue Warning -->
+                    <!-- Alert untuk Overdue: Hanya tampil jika overdue -->
                     <div class="alert alert-danger mb-3" invisible="not is_overdue">
                         <strong>OVERDUE!</strong> This borrowing has exceeded the due date.
                     </div>
 
-                    <!-- ===== STATISTICS ===== -->
+                    <!-- ===== STATISTICS CARDS ===== -->
+                    <!-- Tujuan: Menampilkan statistik dalam bentuk cards colorful -->
                     <div class="row mb-3">
+                        <!-- Card Total Items: Warna biru -->
                         <div class="col-4">
                             <div class="card bg-primary text-white shadow-sm">
                                 <div class="card-body text-center py-2">
@@ -73,6 +102,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card Pending: Warna kuning -->
                         <div class="col-4">
                             <div class="card bg-warning text-dark shadow-sm">
                                 <div class="card-body text-center py-2">
@@ -81,6 +112,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card Returned: Warna hijau -->
                         <div class="col-4">
                             <div class="card bg-success text-white shadow-sm">
                                 <div class="card-body text-center py-2">
@@ -92,8 +125,11 @@
                     </div>
 
                     <!-- ===== MAIN INFO ===== -->
+                    <!-- Group: Mengatur layout menjadi 2 kolom -->
                     <group>
+                        <!-- Kolom Kiri: Informasi Peminjam -->
                         <group string="Borrower Information">
+                            <!-- Field readonly jika state != draft -->
                             <field name="borrower_name" readonly="state != 'draft'"/>
                             <field name="borrower_id_number" readonly="state != 'draft'"/>
                             <field name="borrower_phone" readonly="state != 'draft'"/>
@@ -101,37 +137,40 @@
                             <field name="borrower_department" readonly="state != 'draft'"/>
                         </group>
 
+                        <!-- Kolom Kanan: Detail Peminjaman -->
                         <group string="Borrowing Details">
                             <field name="warehouse_id" readonly="state != 'draft'"/>
                             <field name="borrow_date" readonly="state != 'draft'"/>
                             <field name="due_date" readonly="state != 'draft'"/>
-                            <field name="duration_days" readonly="1"/>
+                            <field name="duration_days" readonly="1"/>  <!-- Computed, always readonly -->
+                            <!-- Actual return date: Hanya tampil jika sudah returned -->
                             <field name="actual_return_date" readonly="1" invisible="state != 'returned'"/>
                             <field name="responsible_id"/>
                             <field name="borrowing_barcode" readonly="1"/>
                         </group>
                     </group>
 
-                    <!-- ===== ADDRESS ===== -->
-<!--                    <group string="Address">-->
-<!--                        <field name="borrower_address" readonly="state != 'draft'" nolabel="1"-->
-<!--                               style="width:100%; height:80px;"/>-->
-<!--                    </group>-->
-
-                    <!-- ===== NOTEBOOK ===== -->
+                    <!-- ===== NOTEBOOK (TABS) ===== -->
                     <notebook>
-                        <!-- Borrowed Products -->
+                        <!-- Tab 1: Borrowed Products -->
                         <page string="Borrowed Products" name="products">
+                            <!-- 
+                                One2many field dengan tree editable
+                                - readonly jika state bukan draft/confirmed
+                                - Decoration (conditional formatting) berdasarkan return_status
+                            -->
                             <field name="line_ids" readonly="state not in ('draft','confirmed')">
                                 <tree editable="bottom"
                                       decoration-success="return_status == 'returned'"
                                       decoration-warning="return_status == 'pending'"
                                       decoration-danger="return_status == 'lost'">
+                                    
+                                    <!-- Kolom-kolom yang ditampilkan -->
                                     <field name="barcode"/>
                                     <field name="code_product"/>
                                     <field name="product_id"/>
-                                    <field name="warehouse_id" optional="hide"/>
-                                    <field name="receipt_id" optional="show"/>
+                                    <field name="warehouse_id" optional="hide"/>  <!-- Hidden by default -->
+                                    <field name="receipt_id" optional="show"/>    <!-- Visible by default -->
                                     <field name="vendor_id" optional="show"/>
                                     <field name="borrow_condition"/>
                                     <field name="borrow_notes"/>
@@ -143,10 +182,11 @@
                             </field>
                         </page>
 
-                        <!-- Purpose & Notes -->
+                        <!-- Tab 2: Purpose & Notes -->
                         <page string="Purpose &amp; Notes" name="notes">
+                            <!-- Layout 2 kolom dengan o_row -->
                             <div class="o_row" style="gap: 16px; width: 100%;">
-                                <!-- Purpose Section -->
+                                <!-- Kolom Kiri: Purpose -->
                                 <div class="o_col" style="width: 50%;">
                                     <h3>Purpose / Reason</h3>
                                     <field name="purpose"
@@ -156,7 +196,7 @@
                                            readonly="state != 'draft'"/>
                                 </div>
 
-                                <!-- Notes Section -->
+                                <!-- Kolom Kanan: Notes -->
                                 <div class="o_col" style="width: 50%;">
                                     <h3>Additional Notes</h3>
                                     <field name="notes"
@@ -167,67 +207,79 @@
                                 </div>
                             </div>
                         </page>
-
                     </notebook>
 
+                    <!-- Hidden field untuk computed values -->
                     <field name="is_overdue" invisible="1"/>
                 </sheet>
             </form>
         </field>
     </record>
 
-        <!-- ========================= SEARCH VIEW ========================= -->
+    <!-- ========================= SEARCH VIEW ========================= -->
+    <!-- Tujuan: Definisi filter dan group by untuk pencarian -->
     <record id="view_product_borrowing_search" model="ir.ui.view">
-    <field name="name">product.borrowing.search</field>
-    <field name="model">product.borrowing</field>
-    <field name="arch" type="xml">
-        <search string="Search Product Borrowing">
-            <!-- Basic search fields -->
-            <field name="name" string="Borrowing Number"/>
-            <field name="borrower_name" string="Borrower Name"/>
-            <field name="borrower_id_number" string="ID Number"/>
-            <field name="borrowing_barcode" string="Borrowing Barcode"/>
-            <field name="warehouse_id" string="Warehouse"/>
-            <field name="responsible_id" string="Responsible"/>
+        <field name="name">product.borrowing.search</field>
+        <field name="model">product.borrowing</field>
+        <field name="arch" type="xml">
+            <search string="Search Product Borrowing">
+                <!-- Field-field yang bisa di-search -->
+                <field name="name" string="Borrowing Number"/>
+                <field name="borrower_name" string="Borrower Name"/>
+                <field name="borrower_id_number" string="ID Number"/>
+                <field name="borrowing_barcode" string="Borrowing Barcode"/>
+                <field name="warehouse_id" string="Warehouse"/>
+                <field name="responsible_id" string="Responsible"/>
 
-            <!-- Filters -->
-            <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
-            <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
-            <filter string="On Loan" name="borrowed" domain="[('state','=','borrowed')]"/>
-            <filter string="Overdue" name="overdue" domain="[('state','=','overdue')]"/>
-            <filter string="Returned" name="returned" domain="[('state','=','returned')]"/>
+                <!-- Filters berdasarkan status -->
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
+                <filter string="On Loan" name="borrowed" domain="[('state','=','borrowed')]"/>
+                <filter string="Overdue" name="overdue" domain="[('state','=','overdue')]"/>
+                <filter string="Returned" name="returned" domain="[('state','=','returned')]"/>
 
-            <separator/>
-            <filter string="Overdue Items" name="filter_overdue" domain="[('is_overdue','=',True)]"/>
+                <!-- Separator untuk memisahkan group filter -->
+                <separator/>
+                
+                <!-- Filter khusus untuk overdue items -->
+                <filter string="Overdue Items" name="filter_overdue" domain="[('is_overdue','=',True)]"/>
 
-            <!-- Group By options -->
-            <group expand="0" string="Group By">
-                <filter string="Status" name="group_status" context="{'group_by':'state'}"/>
-                <filter string="Warehouse" name="group_warehouse" context="{'group_by':'warehouse_id'}"/>
-                <filter string="Borrow Date" name="group_borrow_date" context="{'group_by':'borrow_date'}"/>
-                <filter string="Responsible" name="group_responsible" context="{'group_by':'responsible_id'}"/>
-            </group>
-        </search>
-    </field>
-</record>
+                <!-- Group By options -->
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by':'state'}"/>
+                    <filter string="Warehouse" name="group_warehouse" context="{'group_by':'warehouse_id'}"/>
+                    <filter string="Borrow Date" name="group_borrow_date" context="{'group_by':'borrow_date'}"/>
+                    <filter string="Responsible" name="group_responsible" context="{'group_by':'responsible_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
 
-    <!-- ========================= ACTION & MENU ========================= -->
+    <!-- ========================= ACTION ========================= -->
+    <!-- Tujuan: Definisi action untuk open list/form view -->
     <record id="action_product_borrowing" model="ir.actions.act_window">
         <field name="name">Product Borrowing</field>
         <field name="res_model">product.borrowing</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form</field>  <!-- Tampilan: tree kemudian form -->
         <field name="search_view_id" ref="view_product_borrowing_search"/>
+        
+        <!-- Help text: Tampil ketika belum ada data -->
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first Product Borrowing</p>
             <p>Manage product loans to employees, customers, or other parties.</p>
         </field>
     </record>
 
+    <!-- ========================= MENU ========================= -->
+    <!-- Tujuan: Definisi menu structure -->
+    
+    <!-- Menu Root: Loan (parent dari menu stock) -->
     <menuitem id="menu_loan_root"
               name="Loan"
               parent="stock.menu_stock_root"
               sequence="20"/>
 
+    <!-- Menu Item: Borrow / Return (submenu dari Loan) -->
     <menuitem id="menu_product_borrowing"
               name="Borrow / Return"
               parent="menu_loan_root"

@@ -6,9 +6,18 @@ from datetime import datetime
 
 def response_json(status=True, message="", data=None, errors=None, http_status=200):
     """
-    Helper untuk response JSON standar:
+    Helper function untuk response JSON standar
+    
+    Aturan response:
     - Jika success=True → tampilkan data (tanpa errors)
     - Jika success=False → tampilkan errors (tanpa data)
+    
+    Parameters:
+    - status: Boolean, True jika berhasil, False jika error
+    - message: String pesan untuk user
+    - data: Dict data yang akan dikirim jika berhasil
+    - errors: Dict error yang akan dikirim jika gagal
+    - http_status: HTTP status code
     """
     body = {
         "success": status,
@@ -21,25 +30,34 @@ def response_json(status=True, message="", data=None, errors=None, http_status=2
         body["errors"] = errors
 
     return Response(
-        json.dumps(body, ensure_ascii=False, default=str),
-        headers=[('Content-Type', 'application/json')],
-        status=http_status
+        json.dumps(body, ensure_ascii=False, default=str),  
+        headers=[('Content-Type', 'application/json')],     
+        status=http_status                                                                   
     )
 
 
 class ApiStockOpname(http.Controller):
+    """
+    Controller untuk API Stock Opname
+    Menangani operasi terkait stock opname (physical inventory count)
+    """
 
     @http.route('/api/opname/expected_products', type='http', auth='public', methods=['GET'], csrf=False)
     def get_expected_products(self, **params):
         """
-        API GET untuk mendapatkan list expected products (product yang ada di sistem)
-        Query parameter:
+        API GET untuk mendapatkan list expected products (produk yang ada di sistem)
+        
+        Route: GET /api/opname/expected_products
+        
+        Query Parameters:
         - warehouse_code (required): Kode warehouse (e.g., "WH")
         - status (optional): Filter by status product, default "available"
         - limit (optional): Limit jumlah hasil, default 100
         - offset (optional): Offset untuk pagination, default 0
-
+        
         Example: /api/opname/expected_products?warehouse_code=WH&status=available&limit=50
+        
+        Fungsi: Mendapatkan daftar produk yang seharusnya ada di warehouse berdasarkan sistem
         """
         warehouse_code = params.get('warehouse_code')
         if not warehouse_code:
@@ -47,84 +65,82 @@ class ApiStockOpname(http.Controller):
                                  errors={"field": "warehouse_code", "reason": "This field is required"},
                                  http_status=400)
 
+        # Cari warehouse berdasarkan kode
         warehouse = request.env['stock.warehouse'].sudo().search([('code', '=', warehouse_code)], limit=1)
         if not warehouse:
             return response_json(False, f"Warehouse '{warehouse_code}' not found",
                                  errors={"field": "warehouse_code", "reason": "Not found"},
                                  http_status=404)
 
-        # Build domain
-        domain = [('warehouse_id', '=', warehouse.id)]
+        domain = [('warehouse_id', '=', warehouse.id)]  # Filter by warehouse
 
         # Filter by status (default: available)
         status = params.get('status', 'available')
         if status and status != 'all':
+            # Jika status bukan 'all', tambahkan filter status
             domain.append(('status_product', '=', status))
 
-        # Pagination
         try:
-            limit = int(params.get('limit', 100))
-            offset = int(params.get('offset', 0))
+            limit = int(params.get('limit', 100))   
+            offset = int(params.get('offset', 0))   
         except ValueError:
             return response_json(False, "limit and offset must be numbers",
                                  errors={"field": "limit/offset", "reason": "Must be numeric"},
                                  http_status=400)
 
-        # Get total count
         total_count = request.env['inventory.receipt.product.detail'].sudo().search_count(domain)
 
-        # Get products with pagination
         products = request.env['inventory.receipt.product.detail'].sudo().search(
             domain,
-            limit=limit,
-            offset=offset,
-            order='code_product, barcode'
+            limit=limit,                        
+            offset=offset,                      
+            order='code_product, barcode'      
         )
 
         items = []
         for p in products:
             item = {
-                'id': p.id,
-                'barcode': p.barcode,
-                'product_code': p.code_product,
-                'product_name': p.product_id.name if p.product_id else None,
-                'product_id': p.product_id.id if p.product_id else None,
-                'warehouse': p.warehouse_id.name if p.warehouse_id else None,
+                'id': p.id,                                     
+                'barcode': p.barcode,                           
+                'product_code': p.code_product,                 
+                'product_name': p.product_id.name if p.product_id else None,  
+                'product_id': p.product_id.id if p.product_id else None,      
+                'warehouse': p.warehouse_id.name if p.warehouse_id else None, 
                 'warehouse_id': p.warehouse_id.id if p.warehouse_id else None,
-                'receipt': p.receipt_id.name if p.receipt_id else None,
-                'receipt_id': p.receipt_id.id if p.receipt_id else None,
-                'vendor': p.vendor_id.name if p.vendor_id else None,
-                'vendor_id': p.vendor_id.id if p.vendor_id else None,
-                'vendor_code': p.vendor_code,
-                'status': p.status_product,
-                'unique_code': p.unique_code,
+                'receipt': p.receipt_id.name if p.receipt_id else None,       
+                'receipt_id': p.receipt_id.id if p.receipt_id else None,      
+                'vendor': p.vendor_id.name if p.vendor_id else None,          
+                'vendor_id': p.vendor_id.id if p.vendor_id else None,         
+                'vendor_code': p.vendor_code,                   
+                'status': p.status_product,                     
+                'unique_code': p.unique_code,                   
             }
 
-            # Add opname history if available
             if p.last_opname_date:
                 item['last_opname'] = {
-                    'date': p.last_opname_date.strftime('%Y-%m-%d %H:%M:%S'),
-                    'opname_id': p.last_opname_id.id if p.last_opname_id else None,
-                    'opname_number': p.last_opname_id.name if p.last_opname_id else None,
-                    'condition': p.last_physical_condition,
-                    'notes': p.last_opname_notes,
-                    'count': p.opname_count
+                    'date': p.last_opname_date.strftime('%Y-%m-%d %H:%M:%S'),  
+                    'opname_id': p.last_opname_id.id if p.last_opname_id else None,  
+                    'opname_number': p.last_opname_id.name if p.last_opname_id else None,  
+                    'condition': p.last_physical_condition,     
+                    'notes': p.last_opname_notes,              
+                    'count': p.opname_count                     
                 }
             else:
                 item['last_opname'] = None
 
             items.append(item)
 
+        
         result = {
-            "warehouse": warehouse.name,
-            "warehouse_code": warehouse.code,
-            "status_filter": status,
-            "total_count": total_count,
-            "limit": limit,
-            "offset": offset,
-            "returned_count": len(items),
-            "has_more": (offset + len(items)) < total_count,
-            "items": items
+            "warehouse": warehouse.name,                        
+            "warehouse_code": warehouse.code,                   
+            "status_filter": status,                            
+            "total_count": total_count,                         
+            "limit": limit,                                     
+            "offset": offset,                                   
+            "returned_count": len(items),                       
+            "has_more": (offset + len(items)) < total_count,   
+            "items": items                                     
         }
 
         return response_json(True, f"Found {total_count} expected products", data=result)
@@ -133,11 +149,17 @@ class ApiStockOpname(http.Controller):
     def get_expected_products_summary(self, **params):
         """
         API GET untuk mendapatkan summary expected products per status
-        Query parameter:
+        
+        Route: GET /api/opname/expected_products/summary
+        
+        Query Parameter:
         - warehouse_code (required): Kode warehouse
-
+        
         Example: /api/opname/expected_products/summary?warehouse_code=WH
+        
+        Fungsi: Mendapatkan ringkasan jumlah produk per status dan opname status
         """
+        
         warehouse_code = params.get('warehouse_code')
         if not warehouse_code:
             return response_json(False, "warehouse_code is required",
@@ -152,35 +174,33 @@ class ApiStockOpname(http.Controller):
 
         base_domain = [('warehouse_id', '=', warehouse.id)]
 
-        # Count by status
         status_counts = {}
-        statuses = ['waiting', 'available', 'sold', 'on_borrow']
-
+        statuses = ['waiting', 'available', 'sold', 'on_borrow'] 
         for status in statuses:
             domain = base_domain + [('status_product', '=', status)]
             count = request.env['inventory.receipt.product.detail'].sudo().search_count(domain)
             status_counts[status] = count
 
-        # Total count
+        # Total count - semua produk di warehouse ini
         total = request.env['inventory.receipt.product.detail'].sudo().search_count(base_domain)
 
-        # Count products that have been checked in opname
+        # Count products yang sudah pernah di-check dalam opname
         checked_domain = base_domain + [('last_opname_date', '!=', False)]
         checked_count = request.env['inventory.receipt.product.detail'].sudo().search_count(checked_domain)
 
-        # Count products never checked
+        # Count products yang belum pernah di-check
         never_checked_domain = base_domain + [('last_opname_date', '=', False)]
         never_checked_count = request.env['inventory.receipt.product.detail'].sudo().search_count(never_checked_domain)
 
         result = {
-            "warehouse": warehouse.name,
-            "warehouse_code": warehouse.code,
-            "total_products": total,
-            "by_status": status_counts,
-            "opname_status": {
-                "checked": checked_count,
-                "never_checked": never_checked_count,
-                "checked_percentage": round((checked_count / total * 100), 2) if total > 0 else 0
+            "warehouse": warehouse.name,                        
+            "warehouse_code": warehouse.code,                   
+            "total_products": total,                            
+            "by_status": status_counts,                         
+            "opname_status": {                                  
+                "checked": checked_count,                       
+                "never_checked": never_checked_count,           
+                "checked_percentage": round((checked_count / total * 100), 2) if total > 0 else 0  
             }
         }
 
@@ -190,10 +210,15 @@ class ApiStockOpname(http.Controller):
     def get_expected_products_by_opname(self, **params):
         """
         API GET untuk mendapatkan expected products berdasarkan opname tertentu
-        Query parameter:
+        
+        Route: GET /api/opname/expected_products/by_opname
+        
+        Query Parameter:
         - opname_id (required): ID stock opname
-
+        
         Example: /api/opname/expected_products/by_opname?opname_id=1
+        
+        Fungsi: Mendapatkan daftar produk yang diharapkan ada dalam satu sesi opname
         """
         opname_id = params.get('opname_id')
         if not opname_id:
@@ -214,43 +239,43 @@ class ApiStockOpname(http.Controller):
                                  errors={"field": "opname_id", "reason": "Not found"},
                                  http_status=404)
 
-        # Get expected lines from opname
+        # Get expected lines dari opname (data sistem)
         expected_lines = []
         for line in opname.expected_line_ids:
             expected_lines.append({
-                'id': line.id,
-                'barcode': line.barcode,
-                'product_code': line.code_product,
-                'product_name': line.product_id.name if line.product_id else None,
-                'warehouse': line.warehouse_id.name if line.warehouse_id else None,
-                'receipt': line.receipt_id.name if line.receipt_id else None,
-                'vendor': line.vendor_id.name if line.vendor_id else None,
-                'vendor_code': line.vendor_code,
-                'system_status': line.system_status,
-                'product_condition': line.product_condition,
-                'information': line.information,
-                'match_remarks': line.match_remarks,
+                'id': line.id,                                  
+                'barcode': line.barcode,                        
+                'product_code': line.code_product,              
+                'product_name': line.product_id.name if line.product_id else None, 
+                'warehouse': line.warehouse_id.name if line.warehouse_id else None, 
+                'receipt': line.receipt_id.name if line.receipt_id else None,       
+                'vendor': line.vendor_id.name if line.vendor_id else None,         
+                'vendor_code': line.vendor_code,                
+                'system_status': line.system_status,            
+                'product_condition': line.product_condition,    
+                'information': line.information,                
+                'match_remarks': line.match_remarks,            
                 'last_updated': line.last_updated.strftime('%Y-%m-%d %H:%M:%S') if line.last_updated else None,
-                'is_scanned': line.is_scanned,
+                'is_scanned': line.is_scanned,                  
             })
 
-        # Separate scanned and not scanned
-        scanned = [item for item in expected_lines if item['is_scanned']]
-        not_scanned = [item for item in expected_lines if not item['is_scanned']]
+        # Pisahkan yang sudah di-scan dan yang belum
+        scanned = [item for item in expected_lines if item['is_scanned']]         
+        not_scanned = [item for item in expected_lines if not item['is_scanned']] 
 
         result = {
-            "opname_number": opname.name,
-            "warehouse": opname.warehouse_id.name,
-            "opname_date": opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),
-            "status": opname.state,
-            "total_expected": len(expected_lines),
-            "total_scanned": len(scanned),
-            "total_not_scanned": len(not_scanned),
+            "opname_number": opname.name,                       
+            "warehouse": opname.warehouse_id.name,              
+            "opname_date": opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),  
+            "status": opname.state,                             
+            "total_expected": len(expected_lines),              
+            "total_scanned": len(scanned),                      
+            "total_not_scanned": len(not_scanned),              
             "scanned_percentage": round((len(scanned) / len(expected_lines) * 100), 2) if expected_lines else 0,
             "items": {
-                "all": expected_lines,
-                "scanned": scanned,
-                "not_scanned": not_scanned
+                "all": expected_lines,          
+                "scanned": scanned,             
+                "not_scanned": not_scanned      
             }
         }
 
@@ -260,11 +285,16 @@ class ApiStockOpname(http.Controller):
     def create_opname(self, **kwargs):
         """
         API POST untuk membuat Stock Opname baru
+        
+        Route: POST /api/opname/create
+        
         Request JSON body:
         {
-            "warehouse_code": "WH",
-            "notes": "Monthly stock opname"
+            "warehouse_code": "WH",              # Kode warehouse (required)
+            "notes": "Monthly stock opname"      # Catatan (optional)
         }
+        
+        Fungsi: Membuat sesi stock opname baru dan auto-generate expected lines
         """
         try:
             data = json.loads(request.httprequest.data)
@@ -283,19 +313,21 @@ class ApiStockOpname(http.Controller):
                                  errors={"field": "warehouse_code", "reason": "Not found"},
                                  http_status=404)
 
+        # Status langsung in_progress, bukan draft
         opname = request.env['stock.opname'].sudo().create({
-            'warehouse_id': warehouse.id,
-            'notes': data.get('notes', ''),
-            'state': 'in_progress'
+            'warehouse_id': warehouse.id,           
+            'notes': data.get('notes', ''),         
+            'state': 'in_progress'                  
         })
+        # Note: Expected lines akan auto-generated di method create() model stock.opname
 
         opname_data = {
-            "opname_id": opname.id,
-            "opname_number": opname.name,
-            "warehouse": warehouse.name,
+            "opname_id": opname.id,                                         
+            "opname_number": opname.name,                                   
+            "warehouse": warehouse.name,                                    
             "opname_date": opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),
-            "status": opname.state,
-            "total_expected": opname.total_expected
+            "status": opname.state,                                         
+            "total_expected": opname.total_expected                         
         }
 
         return response_json(True, "Stock opname created successfully", data=opname_data, http_status=201)
@@ -304,14 +336,17 @@ class ApiStockOpname(http.Controller):
     def scan_barcode_opname(self, **kwargs):
         """
         API POST untuk scan barcode dan tambahkan ke opname line
+        
+        Route: POST /api/opname/scan
+        
         Request JSON body:
         {
-            "opname_id": 1,
-            "barcodes": [
+            "opname_id": 1,              # ID opname (required)
+            "barcodes": [                # List barcode yang di-scan (required)
                 {
-                    "barcode": "12345678",
-                    "product_condition": "good",
-                    "information": "Box slightly damaged"
+                    "barcode": "12345678",                      # Barcode produk
+                    "product_condition": "good",                # Kondisi fisik
+                    "information": "Box slightly damaged"       # Informasi tambahan
                 },
                 {
                     "barcode": "87654321",
@@ -320,6 +355,8 @@ class ApiStockOpname(http.Controller):
                 }
             ]
         }
+        
+        Fungsi: Mencatat hasil physical count dengan scan barcode
         """
         try:
             data = json.loads(request.httprequest.data)
@@ -343,33 +380,36 @@ class ApiStockOpname(http.Controller):
             return response_json(False, f"Stock opname with ID {opname_id} not found",
                                  errors={"field": "opname_id", "reason": "Not found"},
                                  http_status=404)
+        
         if opname.state not in ['draft', 'in_progress']:
             return response_json(False, "Stock opname is not in progress",
                                  errors={"field": "state", "reason": "Must be in progress"},
                                  http_status=400)
 
         created_lines = []
-        matched_count = 0
-        unmatched_count = 0
+        matched_count = 0       
+        unmatched_count = 0     
 
         for item in barcodes:
             barcode = item.get('barcode')
             if not barcode:
-                continue
+                continue  
 
             existing = request.env['stock.opname.line'].sudo().search([
                 ('opname_id', '=', opname_id),
                 ('barcode', '=', barcode)
             ], limit=1)
             if existing:
-                continue
+                continue  
 
+            # Create opname line (auto-matching akan dilakukan di method create())
             line = request.env['stock.opname.line'].sudo().create({
-                'opname_id': opname_id,
-                'barcode': barcode,
-                'product_condition': item.get('product_condition', 'good'),
-                'information': item.get('information', ''),
+                'opname_id': opname_id,                             
+                'barcode': barcode,                                 
+                'product_condition': item.get('product_condition', 'good'),  
+                'information': item.get('information', ''),        
             })
+            # Note: Saat create, akan auto-match dengan inventory.receipt.product.detail
 
             if line.match_status == 'matched':
                 matched_count += 1
@@ -377,24 +417,24 @@ class ApiStockOpname(http.Controller):
                 unmatched_count += 1
 
             created_lines.append({
-                'barcode': line.barcode,
-                'product_code': line.code_product,
-                'product_name': line.product_id.name if line.product_id else None,
+                'barcode': line.barcode,                           
+                'product_code': line.code_product,                 
+                'product_name': line.product_id.name if line.product_id else None, 
                 'warehouse': line.warehouse_id.name if line.warehouse_id else None,
-                'product_condition': line.product_condition,
-                'match_status': line.match_status,
-                'match_remarks': line.match_remarks,
-                'system_status': line.detail_product_status,
-                'receipt': line.receipt_id.name if line.receipt_id else None,
-                'vendor': line.vendor_id.name if line.vendor_id else None
+                'product_condition': line.product_condition,     
+                'match_status': line.match_status,                 
+                'match_remarks': line.match_remarks,              
+                'system_status': line.detail_product_status,      
+                'receipt': line.receipt_id.name if line.receipt_id else None,     
+                'vendor': line.vendor_id.name if line.vendor_id else None          
             })
 
         result = {
-            "opname_number": opname.name,
-            "scanned_count": len(created_lines),
-            "matched_count": matched_count,
-            "unmatched_count": unmatched_count,
-            "items": created_lines
+            "opname_number": opname.name,           
+            "scanned_count": len(created_lines),   
+            "matched_count": matched_count,         
+            "unmatched_count": unmatched_count,    
+            "items": created_lines                  
         }
 
         return response_json(True, f"Successfully scanned {len(created_lines)} barcodes", data=result)
@@ -403,10 +443,15 @@ class ApiStockOpname(http.Controller):
     def submit_opname(self, **kwargs):
         """
         API POST untuk submit/finalize stock opname
+        
+        Route: POST /api/opname/submit
+        
         Request JSON body:
         {
-            "opname_id": 1
+            "opname_id": 1  # ID opname yang akan di-submit
         }
+        
+        Fungsi: Finalisasi opname dan update data produk berdasarkan hasil physical count
         """
         try:
             data = json.loads(request.httprequest.data)
@@ -424,42 +469,43 @@ class ApiStockOpname(http.Controller):
             return response_json(False, f"Stock opname with ID {opname_id} not found",
                                  errors={"field": "opname_id", "reason": "Not found"},
                                  http_status=404)
+        
         if opname.state == 'done':
             return response_json(False, "Stock opname already completed",
                                  errors={"field": "state", "reason": "Already done"},
                                  http_status=400)
 
         try:
-            opname.action_done()
+            opname.action_done()  # Akan update status menjadi done dan update product details
         except Exception as e:
             return response_json(False, f"Failed to submit opname: {str(e)}",
                                  errors={"exception": str(e)},
                                  http_status=500)
 
         summary = {
-            'matched': [],
-            'unmatched': []
+            'matched': [],     
+            'unmatched': []     
         }
 
         for line in opname.line_ids:
             item = {
-                'barcode': line.barcode,
-                'product_code': line.code_product,
-                'product_name': line.product_id.name if line.product_id else None,
-                'product_condition': line.product_condition,
-                'information': line.information,
-                'system_status': line.detail_product_status,
-                'remarks': line.match_remarks
+                'barcode': line.barcode,                       
+                'product_code': line.code_product,              
+                'product_name': line.product_id.name if line.product_id else None, 
+                'product_condition': line.product_condition,   
+                'information': line.information,                
+                'system_status': line.detail_product_status,   
+                'remarks': line.match_remarks                   
             }
             summary[line.match_status if line.match_status in summary else 'unmatched'].append(item)
 
         result = {
-            "opname_number": opname.name,
-            "status": opname.state,
-            "total_scanned": opname.total_scanned,
-            "total_matched": opname.total_matched,
-            "total_unmatched": opname.total_unmatched,
-            "summary": summary
+            "opname_number": opname.name,          
+            "status": opname.state,                
+            "total_scanned": opname.total_scanned,  
+            "total_matched": opname.total_matched, 
+            "total_unmatched": opname.total_unmatched, 
+            "summary": summary                     
         }
 
         return response_json(True, "Stock opname submitted successfully", data=result)
@@ -468,7 +514,13 @@ class ApiStockOpname(http.Controller):
     def get_opname_detail(self, **params):
         """
         API GET untuk melihat detail stock opname
-        Query parameter: ?opname_id=1
+        
+        Route: GET /api/opname/detail
+        
+        Query Parameter:
+        - opname_id: ID stock opname yang ingin dilihat
+        
+        Example: /api/opname/detail?opname_id=1
         """
         opname_id = params.get('opname_id')
         if not opname_id:
@@ -490,32 +542,32 @@ class ApiStockOpname(http.Controller):
                                  http_status=404)
 
         lines = [{
-            'barcode': line.barcode,
-            'product_code': line.code_product,
-            'product_name': line.product_id.name if line.product_id else None,
-            'warehouse': line.warehouse_id.name if line.warehouse_id else None,
-            'product_condition': line.product_condition,
-            'information': line.information,
-            'match_status': line.match_status,
-            'match_remarks': line.match_remarks,
-            'system_status': line.detail_product_status,
-            'receipt': line.receipt_id.name if line.receipt_id else None,
-            'vendor': line.vendor_id.name if line.vendor_id else None,
+            'barcode': line.barcode,                            
+            'product_code': line.code_product,                  
+            'product_name': line.product_id.name if line.product_id else None,  
+            'warehouse': line.warehouse_id.name if line.warehouse_id else None, 
+            'product_condition': line.product_condition,        
+            'information': line.information,                    
+            'match_status': line.match_status,                 
+            'match_remarks': line.match_remarks,                
+            'system_status': line.detail_product_status,        
+            'receipt': line.receipt_id.name if line.receipt_id else None,      
+            'vendor': line.vendor_id.name if line.vendor_id else None,          
             'scanned_date': line.scanned_date.strftime('%Y-%m-%d %H:%M:%S') if line.scanned_date else None
         } for line in opname.line_ids]
 
         data = {
-            "opname_number": opname.name,
-            "warehouse": opname.warehouse_id.name,
-            "opname_date": opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),
-            "responsible": opname.responsible_id.name,
-            "status": opname.state,
-            "notes": opname.notes,
-            "total_expected": opname.total_expected,
-            "total_scanned": opname.total_scanned,
-            "total_matched": opname.total_matched,
-            "total_unmatched": opname.total_unmatched,
-            "lines": lines
+            "opname_number": opname.name,                       
+            "warehouse": opname.warehouse_id.name,              
+            "opname_date": opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),  
+            "responsible": opname.responsible_id.name,          
+            "status": opname.state,                             
+            "notes": opname.notes,                              
+            "total_expected": opname.total_expected,            
+            "total_scanned": opname.total_scanned,              
+            "total_matched": opname.total_matched,              
+            "total_unmatched": opname.total_unmatched,          
+            "lines": lines                                     
         }
 
         return response_json(True, "Stock opname detail retrieved successfully", data=data)
@@ -523,33 +575,42 @@ class ApiStockOpname(http.Controller):
     @http.route('/api/opname/list', type='http', auth='public', methods=['GET'], csrf=False)
     def get_opname_list(self, **params):
         """
-        API GET untuk melihat list stock opname
-        Query parameter: ?warehouse_code=WH&state=in_progress
+        API GET untuk melihat list stock opname dengan filter
+        
+        Route: GET /api/opname/list
+        
+        Query Parameters:
+        - warehouse_code: Filter berdasarkan kode warehouse (optional)
+        - state: Filter berdasarkan status (draft/in_progress/done/cancel) (optional)
+        
+        Example: /api/opname/list?warehouse_code=WH&state=in_progress
         """
-        warehouse_code = params.get('warehouse_code')
-        state = params.get('state')
-
         domain = []
+        
+        warehouse_code = params.get('warehouse_code')
         if warehouse_code:
             warehouse = request.env['stock.warehouse'].sudo().search([('code', '=', warehouse_code)], limit=1)
             if warehouse:
                 domain.append(('warehouse_id', '=', warehouse.id))
+        
+        state = params.get('state')
         if state:
             domain.append(('state', '=', state))
 
         opnames = request.env['stock.opname'].sudo().search(domain, order='create_date desc')
+        
         data = [{
-            'id': opname.id,
-            'opname_number': opname.name,
-            'warehouse': opname.warehouse_id.name,
-            'notes': opname.notes,
-            'opname_date': opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),
-            'responsible': opname.responsible_id.name,
-            'status': opname.state,
-            'total_expected': opname.total_expected,
-            'total_scanned': opname.total_scanned,
-            'total_matched': opname.total_matched,
-            'total_unmatched': opname.total_unmatched
+            'id': opname.id,                                    
+            'opname_number': opname.name,                       
+            'warehouse': opname.warehouse_id.name,              
+            'notes': opname.notes,                              
+            'opname_date': opname.opname_date.strftime('%Y-%m-%d %H:%M:%S'),  
+            'responsible': opname.responsible_id.name,         
+            'status': opname.state,                             
+            'total_expected': opname.total_expected,            
+            'total_scanned': opname.total_scanned,              
+            'total_matched': opname.total_matched,              
+            'total_unmatched': opname.total_unmatched          
         } for opname in opnames]
 
         return response_json(True, "Stock opname list retrieved successfully", data={"count": len(data), "items": data})

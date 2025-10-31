@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File View untuk Stock Opname Comparison
+    Tujuan: Tampilan perbandingan antara data sistem (expected) vs physical count (scanned)
+-->
 <odoo>
-    <!-- Comparison Tree View - Unified Data with Comparison Columns -->
+    <!-- Tujuan: Unified view yang menampilkan comparison data -->
     <record id="view_stock_opname_comparison_tree" model="ir.ui.view">
         <field name="name">stock.opname.comparison.tree</field>
         <field name="model">stock.opname.comparison</field>
         <field name="arch" type="xml">
+            <!-- 
+                Tree dengan:
+                - create="0": Disable create (data auto-generated)
+                - delete="0": Disable delete
+                - edit="0": Disable edit
+                - Decoration berdasarkan comparison_status
+            -->
             <tree string="Comparison View" create="0" delete="0" edit="0"
                   decoration-success="comparison_status == 'perfect_match'"
                   decoration-info="comparison_status == 'found_with_issue'"
                   decoration-danger="comparison_status == 'missing'"
                   decoration-warning="comparison_status == 'surplus'">
 
-                <!-- Common Data (Unified) -->
                 <field name="barcode" string="Barcode"/>
                 <field name="code_product" string="Product Code"/>
                 <field name="product_id" string="Product"/>
@@ -19,7 +29,6 @@
                 <field name="receipt_id" string="Receipt" optional="show"/>
                 <field name="vendor_id" string="Vendor" optional="show"/>
 
-                <!-- System vs Physical Comparison -->
                 <field name="system_status" string="System Status"/>
                 <field name="scanned_condition" string="Physical Condition"/>
 
@@ -29,7 +38,7 @@
                 <field name="scanned_information" string="Physical Info" optional="show"/>
                 <field name="scanned_match_remarks" string="Scan Remarks" optional="hide"/>
 
-                <!-- Comparison Result -->
+                <!-- Status hasil comparison dengan badge widget dan decoration -->
                 <field name="comparison_status" string="Status" widget="badge"
                        decoration-success="comparison_status == 'perfect_match'"
                        decoration-info="comparison_status == 'found_with_issue'"
@@ -38,6 +47,7 @@
 
                 <field name="discrepancy_notes" string="Discrepancy Notes"/>
 
+                <!-- Hidden fields untuk computed values -->
                 <field name="is_scanned" invisible="1"/>
                 <field name="scanned_match_status" invisible="1"/>
                 <field name="opname_line_id" invisible="1"/>
@@ -46,14 +56,17 @@
         </field>
     </record>
 
-    <!-- Comparison Form View -->
+    <!-- Tujuan: Detail view untuk satu comparison record -->
     <record id="view_stock_opname_comparison_form" model="ir.ui.view">
         <field name="name">stock.opname.comparison.form</field>
         <field name="model">stock.opname.comparison</field>
         <field name="arch" type="xml">
+            <!-- Form dengan create dan delete disabled -->
             <form string="Comparison Detail" create="0" delete="0">
                 <sheet>
+                    <!-- Main Info: 2 kolom -->
                     <group>
+                        <!-- Kolom Kiri: Product Information -->
                         <group string="Product Information">
                             <field name="barcode" readonly="1"/>
                             <field name="code_product" readonly="1"/>
@@ -62,13 +75,17 @@
                             <field name="receipt_id" readonly="1"/>
                             <field name="vendor_id" readonly="1"/>
                         </group>
+                        
+                        <!-- Kolom Kanan: Comparison Status -->
                         <group string="Comparison Status">
                             <field name="comparison_status" readonly="1" widget="badge"/>
                             <field name="is_scanned" readonly="1"/>
                         </group>
                     </group>
 
+                    <!-- ===== NOTEBOOK (TABS) ===== -->
                     <notebook>
+                        <!-- TAB 1: System Data (Expected) -->
                         <page string="System Data" name="system_data">
                             <group>
                                 <group>
@@ -81,6 +98,7 @@
                             </group>
                         </page>
 
+                        <!-- TAB 2: Physical Data (Scanned) -->
                         <page string="Physical Data" name="physical_data">
                             <group>
                                 <group>
@@ -92,13 +110,17 @@
                                     <field name="opname_line_id" readonly="1"/>
                                 </group>
                             </group>
+                            
+                            <!-- Detail Section -->
                             <group string="Details">
                                 <field name="scanned_information" readonly="1" nolabel="1"/>
                                 <field name="scanned_match_remarks" readonly="1" nolabel="1"/>
                             </group>
                         </page>
 
+                        <!-- TAB 3: Discrepancy Analysis -->
                         <page string="Discrepancy Analysis" name="discrepancy">
+                            <!-- Text widget untuk multiline display -->
                             <field name="discrepancy_notes" readonly="1" nolabel="1"
                                    widget="text" placeholder="No discrepancy notes"/>
                         </page>
@@ -108,17 +130,19 @@
         </field>
     </record>
 
-    <!-- Search View for Filtering -->
+    <!-- Tujuan: Filter dan group by untuk comparison data -->
     <record id="view_stock_opname_comparison_search" model="ir.ui.view">
         <field name="name">stock.opname.comparison.search</field>
         <field name="model">stock.opname.comparison</field>
         <field name="arch" type="xml">
             <search string="Comparison">
+                <!-- Searchable fields -->
                 <field name="barcode"/>
                 <field name="code_product"/>
                 <field name="product_id"/>
                 <field name="vendor_id"/>
 
+                <!-- ===== FILTERS BY COMPARISON STATUS ===== -->
                 <filter string="Perfect Match" name="perfect_match"
                         domain="[('comparison_status','=','perfect_match')]"/>
                 <filter string="Found (with issue)" name="found_issue"
@@ -129,12 +153,16 @@
                         domain="[('comparison_status','=','surplus')]"/>
 
                 <separator/>
+                
+                <!-- ===== FILTERS BY SCAN STATUS ===== -->
                 <filter string="Scanned" name="scanned"
                         domain="[('is_scanned','=',True)]"/>
                 <filter string="Not Scanned" name="not_scanned"
                         domain="[('is_scanned','=',False)]"/>
 
                 <separator/>
+                
+                <!-- ===== FILTERS BY CONDITION ===== -->
                 <filter string="Good Condition" name="good_condition"
                         domain="[('scanned_condition','=','good')]"/>
                 <filter string="Damaged" name="damaged"
@@ -142,6 +170,7 @@
                 <filter string="Defect" name="defect"
                         domain="[('scanned_condition','=','defect')]"/>
 
+                <!-- ===== GROUP BY ===== -->
                 <group expand="0" string="Group By">
                     <filter string="Comparison Status" name="status" context="{'group_by':'comparison_status'}"/>
                     <filter string="System Status" name="system_status" context="{'group_by':'system_status'}"/>
@@ -153,18 +182,23 @@
         </field>
     </record>
 
-    <!-- Add Enhanced Comparison Tab to Stock Opname Form -->
+    <!-- Tujuan: Menambahkan tab Comparison Analysis ke form stock opname -->
     <record id="view_stock_opname_form_add_comparison" model="ir.ui.view">
         <field name="name">stock.opname.form.add.comparison</field>
         <field name="model">stock.opname</field>
         <field name="inherit_id" ref="product_barcode.view_stock_opname_form"/>
         <field name="arch" type="xml">
+            <!-- XPath: Menambahkan page baru ke dalam notebook -->
             <xpath expr="//notebook" position="inside">
+                <!-- TAB: Comparison Analysis -->
+                <!-- invisible jika state masih draft -->
                 <page string="Comparison Analysis" name="comparison_view"
                       invisible="state == 'draft'">
 
-                    <!-- Statistics Dashboard -->
+                    <!-- ===== STATISTICS DASHBOARD ===== -->
+                    <!-- Tujuan: Visual dashboard untuk statistik comparison -->
                     <div class="row" style="margin-bottom: 20px;">
+                        <!-- Card 1: Perfect Match (hijau) -->
                         <div class="col-3">
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center">
@@ -173,6 +207,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card 2: Found with Issue (biru) -->
                         <div class="col-3">
                             <div class="card bg-info text-white">
                                 <div class="card-body text-center">
@@ -181,6 +217,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card 3: Missing (merah) -->
                         <div class="col-3">
                             <div class="card bg-danger text-white">
                                 <div class="card-body text-center">
@@ -189,6 +227,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card 4: Surplus (kuning) -->
                         <div class="col-3">
                             <div class="card bg-warning text-dark">
                                 <div class="card-body text-center">
@@ -199,16 +239,22 @@
                         </div>
                     </div>
 
-                    <!-- Instructions -->
+                    <!-- ===== INSTRUCTIONS ===== -->
+                    <!-- Alert info: Penjelasan tentang comparison -->
                     <div class="alert alert-info" role="alert">
                         <h5><strong>System vs Physical Comparison</strong></h5>
                         <p>This view compares expected system data with actual physical count results.</p>
+                        
+                        <!-- Legend: Penjelasan badge colors -->
                         <ul class="mb-2">
                             <li><span class="badge badge-success">Perfect Match</span>: Item found, condition good, status matched</li>
                             <li><span class="badge badge-info">Found (with issue)</span>: Item found but has condition/status issues</li>
                             <li><span class="badge badge-danger">Missing</span>: Expected in system but not found during count</li>
                             <li><span class="badge badge-warning">Surplus</span>: Found during count but not in system</li>
                         </ul>
+                        
+                        <!-- Button Generate Comparison -->
+                        <!-- Hanya tampil jika state in_progress atau done -->
                         <button name="action_generate_comparison"
                                 string="Generate Comparison Analysis"
                                 type="object"
@@ -216,7 +262,12 @@
                                 invisible="state not in ('in_progress', 'done')"/>
                     </div>
 
-                    <!-- Comparison Data Table -->
+                    <!-- ===== COMPARISON DATA TABLE ===== -->
+                    <!-- 
+                        One2many field ke comparison_ids
+                        widget="one2many" dengan mode="tree"
+                        context untuk specify tree view yang digunakan
+                    -->
                     <field name="comparison_ids"
                            widget="one2many"
                            mode="tree"

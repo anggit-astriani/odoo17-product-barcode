@@ -1,20 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File View untuk Stock Opname
+    Tujuan: Interface untuk proses physical inventory count
+-->
 <odoo>
-    <!-- Stock Opname Tree View -->
+    <!-- ========================= TREE VIEW ========================= -->
+    <!-- Tujuan: Tampilan list untuk semua stock opname -->
     <record id="view_stock_opname_tree" model="ir.ui.view">
         <field name="name">stock.opname.tree</field>
         <field name="model">stock.opname</field>
         <field name="arch" type="xml">
             <tree string="Stock Opname">
-                <field name="name"/>
-                <field name="opname_date"/>
-                <field name="warehouse_id"/>
-                <field name="responsible_id"/>
-                <field name="total_expected"/>
-                <field name="total_scanned"/>
-                <field name="total_matched"/>
-                <field name="total_status_mismatch"/>
-                <field name="total_unmatched"/>
+                <!-- Kolom-kolom yang ditampilkan -->
+                <field name="name"/>                    
+                <field name="opname_date"/>             
+                <field name="warehouse_id"/>            
+                <field name="responsible_id"/>          
+                <field name="total_expected"/>          
+                <field name="total_scanned"/>           
+                <field name="total_matched"/>           
+                <field name="total_status_mismatch"/>   
+                <field name="total_unmatched"/>         
+                
+                <!-- 
+                    State dengan widget badge dan decoration
+                    Decoration untuk conditional formatting
+                -->
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'in_progress'"
@@ -24,41 +35,56 @@
         </field>
     </record>
 
-    <!-- Stock Opname Form View -->
+    <!-- Tujuan: Tampilan detail/form untuk create/edit opname -->
     <record id="view_stock_opname_form" model="ir.ui.view">
         <field name="name">stock.opname.form</field>
         <field name="model">stock.opname</field>
         <field name="arch" type="xml">
             <form string="Stock Opname">
+                <!-- HEADER: Berisi action buttons dan statusbar -->
                 <header>
+                    <!-- Button Start Opname: Hanya tampil di state draft -->
                     <button name="action_start_opname" string="Start Opname"
                             type="object" class="oe_highlight"
                             invisible="state != 'draft'"/>
+                    
+                    <!-- Button Submit: Hanya tampil di state in_progress -->
                     <button name="action_done" string="Submit"
                             type="object" class="oe_highlight"
                             invisible="state != 'in_progress'"/>
+                    
+                    <!-- Button Export: Hanya tampil di state done -->
                     <button name="action_open_export_wizard" string="Export"
                             type="object" class="btn-primary"
                             icon="fa-download"
                             invisible="state != 'done'"/>
+                    
+                    <!-- Button Cancel: Tampil sebelum done/cancel -->
                     <button name="action_cancel" string="Cancel"
                             type="object"
                             invisible="state in ('done', 'cancel')"/>
+                    
+                    <!-- Button Reset to Draft: Tampil di done/cancel -->
                     <button name="action_reset_to_draft" string="Reset to Draft"
                             type="object"
                             invisible="state not in ('done', 'cancel')"/>
+                    
+                    <!-- Statusbar: Visual workflow -->
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,in_progress,done"/>
                 </header>
+                
                 <sheet>
+                    <!-- Title: Menampilkan nomor opname -->
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
 
-                    <!-- Statistics Cards -->
+                    <!-- Tujuan: Menampilkan statistik dalam cards -->
                     <div class="row" style="margin-bottom: 15px;">
+                        <!-- Card Total Expected: Warna info (biru muda) -->
                         <div class="col-4">
                             <div class="card bg-info text-white">
                                 <div class="card-body text-center py-2">
@@ -67,6 +93,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card Total Scanned: Warna primary (biru) -->
                         <div class="col-4">
                             <div class="card bg-primary text-white">
                                 <div class="card-body text-center py-2">
@@ -75,6 +103,8 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Card Total Matched: Warna success (hijau) -->
                         <div class="col-4">
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center py-2">
@@ -86,31 +116,50 @@
                     </div>
 
                     <group>
+                        <!-- Kolom Kiri -->
                         <group>
+                            <!-- 
+                                Warehouse: Readonly jika bukan draft
+                                options no_create untuk disable create new dari dropdown
+                            -->
                             <field name="warehouse_id" options="{'no_create': True}"
                                    readonly="state != 'draft'"/>
                             <field name="opname_date" readonly="state != 'draft'"/>
                             <field name="responsible_id" options="{'no_create': True}"/>
                         </group>
+                        
+                        <!-- Kolom Kanan: Statistik (readonly) -->
                         <group>
                             <field name="total_matched" readonly="1"/>
                             <field name="total_status_mismatch" readonly="1"/>
                             <field name="total_unmatched" readonly="1"/>
                         </group>
                     </group>
+                    
                     <notebook>
-                        <!-- Tab 1: Expected Items (System Data) -->
+                        <!-- Tujuan: Menampilkan daftar produk yang seharusnya ada -->
                         <page string="Expected Items (System)" name="expected_items">
+                            <!-- Alert Info: Penjelasan tentang expected items -->
                             <div class="alert alert-info" role="alert">
                                 <strong>Expected Items from System</strong><br/>
                                 These are items currently registered in the system with status "Available".<br/>
                                 Items marked as "Scanned" have been verified during physical count.
                             </div>
 
+                            <!-- Expected Lines Field -->
                             <field name="expected_line_ids" readonly="state in ('done', 'cancel')">
+                                <!-- 
+                                    Tree dengan:
+                                    - create="0": Disable create button
+                                    - delete="0": Disable delete button
+                                    - editable="bottom": Edit di bottom
+                                    - Decoration: hijau jika sudah di-scan, abu jika belum
+                                -->
                                 <tree string="Expected Items" create="0" delete="0" editable="bottom"
                                       decoration-success="is_scanned == True"
                                       decoration-muted="is_scanned == False">
+                                    
+                                    <!-- Checkbox Scanned: Readonly, hanya display -->
                                     <field name="is_scanned" string="✓" widget="boolean_toggle" readonly="1"/>
                                     <field name="barcode"/>
                                     <field name="code_product"/>
@@ -128,19 +177,28 @@
                             </field>
                         </page>
 
-                        <!-- Tab 2: Scanned Items (Physical Data) -->
+                        <!-- Tujuan: Menampilkan hasil physical count -->
                         <page string="Scanned Items (Physical)" name="scanned_items">
+                            <!-- Alert Success: Penjelasan tentang scanned items -->
                             <div class="alert alert-success" role="alert">
                                 <strong>Scanned Items from Physical Count</strong><br/>
                                 These are items that have been scanned during the physical count.<br/>
                                 Match status indicates whether the item is found in the system.
                             </div>
 
+                            <!-- Scanned Lines Field -->
                             <field name="line_ids" readonly="state in ('done', 'cancel')">
+                                <!-- 
+                                    Tree dengan:
+                                    - create="1": Enable create (untuk manual input)
+                                    - delete="1": Enable delete
+                                    - Decoration berdasarkan match_status
+                                -->
                                 <tree string="Scanned Items" create="1" delete="1" editable="bottom"
                                       decoration-success="match_status == 'matched'"
                                       decoration-warning="match_status == 'status_mismatch'"
                                       decoration-danger="match_status == 'unmatched'">
+                                    
                                     <field name="barcode"/>
                                     <field name="code_product"/>
                                     <field name="product_id"/>
@@ -149,10 +207,16 @@
                                     <field name="vendor_id"/>
                                     <field name="product_condition"/>
                                     <field name="information"/>
+                                    
+                                    <!-- 
+                                        Match Status dengan widget badge
+                                        Decoration untuk conditional formatting
+                                    -->
                                     <field name="match_status" widget="badge"
                                            decoration-success="match_status == 'matched'"
                                            decoration-warning="match_status == 'status_mismatch'"
                                            decoration-danger="match_status == 'unmatched'"/>
+                                    
                                     <field name="detail_product_status" string="System Status" optional="show"/>
                                     <field name="match_remarks"/>
                                     <field name="scanned_date" string="Scan Date"/>
@@ -160,6 +224,7 @@
                             </field>
                         </page>
 
+                        <!-- Tujuan: Catatan tambahan -->
                         <page string="Notes" name="notes">
                             <field name="notes" placeholder="Add notes here..."
                                    readonly="state in ('done', 'cancel')"/>
@@ -170,18 +235,23 @@
         </field>
     </record>
 
-    <!-- Search View -->
+    <!-- Tujuan: Definisi filter dan group by -->
     <record id="view_stock_opname_search" model="ir.ui.view">
         <field name="name">stock.opname.search</field>
         <field name="model">stock.opname</field>
         <field name="arch" type="xml">
             <search string="Stock Opname">
+                <!-- Searchable fields -->
                 <field name="name"/>
                 <field name="warehouse_id"/>
                 <field name="responsible_id"/>
+                
+                <!-- Filters berdasarkan status -->
                 <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
                 <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
                 <filter string="Done" name="done" domain="[('state','=','done')]"/>
+                
+                <!-- Group By options -->
                 <group expand="0" string="Group By">
                     <filter string="Warehouse" name="warehouse" context="{'group_by':'warehouse_id'}"/>
                     <filter string="Status" name="status" context="{'group_by':'state'}"/>
@@ -192,12 +262,13 @@
         </field>
     </record>
 
-    <!-- Action -->
     <record id="action_stock_opname" model="ir.actions.act_window">
         <field name="name">Stock Opname</field>
         <field name="res_model">stock.opname</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_stock_opname_search"/>
+        
+        <!-- Help text: Tampil ketika belum ada data -->
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create your first Stock Opname
@@ -208,7 +279,10 @@
         </field>
     </record>
 
-    <!-- Menu Item -->
+    <!-- 
+        Menu ditempatkan di bawah Stock > Warehouse Management
+        parent="stock.menu_stock_warehouse_mgmt" 
+    -->
     <menuitem id="menu_stock_opname"
               name="Stock Opname"
               parent="stock.menu_stock_warehouse_mgmt"

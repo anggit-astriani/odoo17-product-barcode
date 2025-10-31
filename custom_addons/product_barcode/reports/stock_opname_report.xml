@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File Report Template untuk Stock Opname
+    Tujuan: Template PDF untuk dokumen hasil stock opname
+-->
 <odoo>
-    <!-- PDF Report Template -->
+    <!-- 
+        Tujuan: QWeb template untuk generate PDF stock opname report
+        Template ini di-render oleh export wizard dengan filtering options
+    -->
     <template id="report_stock_opname_document">
+        <!-- HTML Container wrapper -->
         <t t-call="web.html_container">
+            <!-- Loop setiap opname record -->
             <t t-foreach="docs" t-as="o">
+                <!-- External layout dengan company header/footer -->
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <!-- Header -->
+                        
+                        <!-- ===== HEADER TITLE ===== -->
                         <div class="text-center">
                             <h2>STOCK OPNAME REPORT</h2>
                         </div>
 
                         <br/>
 
-                        <!-- Opname Information -->
+                        <!-- Layout 2 kolom untuk info opname -->
                         <div class="row">
+                            <!-- Kolom Kiri -->
                             <div class="col-6">
                                 <table class="table table-sm table-borderless">
                                     <tr>
@@ -31,6 +43,8 @@
                                     </tr>
                                 </table>
                             </div>
+                            
+                            <!-- Kolom Kanan -->
                             <div class="col-6">
                                 <table class="table table-sm table-borderless">
                                     <tr>
@@ -39,6 +53,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Status:</strong></td>
+                                        <!-- State dengan badge styling -->
                                         <td><span t-field="o.state" class="badge badge-info"/></td>
                                     </tr>
                                     <tr>
@@ -51,22 +66,32 @@
 
                         <br/>
 
-                        <!-- Summary Section -->
+                        <!-- 
+                            Conditional rendering berdasarkan data.include_summary
+                            data = dict yang dikirim dari wizard
+                        -->
                         <t t-if="data.get('include_summary', True)">
                             <h4>Summary</h4>
                             <table class="table table-sm table-bordered">
+                                <!-- Total Scanned -->
                                 <tr>
                                     <td><strong>Total Scanned</strong></td>
                                     <td class="text-right"><span t-esc="o.total_scanned"/></td>
                                 </tr>
+                                
+                                <!-- Total Matched: Background hijau -->
                                 <tr style="background-color: #d4edda;">
                                     <td><strong>Total Matched</strong></td>
                                     <td class="text-right"><span t-esc="o.total_matched"/></td>
                                 </tr>
+                                
+                                <!-- Total Status Mismatch: Background kuning -->
                                 <tr style="background-color: #fff3cd;">
                                     <td><strong>Total Status Mismatch</strong></td>
                                     <td class="text-right"><span t-esc="o.total_status_mismatch"/></td>
                                 </tr>
+                                
+                                <!-- Total Unmatched: Background merah -->
                                 <tr style="background-color: #f8d7da;">
                                     <td><strong>Total Unmatched</strong></td>
                                     <td class="text-right"><span t-esc="o.total_unmatched"/></td>
@@ -76,24 +101,34 @@
 
                         <br/>
 
-                        <!-- Detail Lines Section -->
+                        <!-- Conditional rendering berdasarkan data.include_details -->
                         <t t-if="data.get('include_details', True)">
                             <h4>Detail Items</h4>
 
+                            <!-- 
+                                Get filter parameters dari data
+                                data = dict yang dikirim dari export wizard
+                            -->
                             <t t-set="filter_match_status" t-value="data.get('filter_match_status', 'all')"/>
                             <t t-set="filter_product_condition" t-value="data.get('filter_product_condition', 'all')"/>
 
+                            <!-- Set filtered_lines awalnya = semua lines -->
                             <t t-set="filtered_lines" t-value="o.line_ids"/>
 
-                            <!-- Apply filters -->
+                            <!-- Filter by match_status jika bukan 'all' -->
                             <t t-if="filter_match_status != 'all'">
+                                <!-- Filter lines berdasarkan match_status -->
                                 <t t-set="filtered_lines" t-value="filtered_lines.filtered(lambda l: l.match_status == filter_match_status)"/>
                             </t>
+                            
+                            <!-- Filter by product_condition jika bukan 'all' -->
                             <t t-if="filter_product_condition != 'all'">
+                                <!-- Filter lines berdasarkan product_condition -->
                                 <t t-set="filtered_lines" t-value="filtered_lines.filtered(lambda l: l.product_condition == filter_product_condition)"/>
                             </t>
 
                             <table class="table table-sm table-bordered">
+                                <!-- Table Header dengan background biru -->
                                 <thead>
                                     <tr style="background-color: #4472C4; color: white;">
                                         <th class="text-center">No</th>
@@ -107,9 +142,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <!-- Set line counter -->
                                     <t t-set="line_no" t-value="1"/>
+                                    
+                                    <!-- 
+                                        Loop filtered_lines
+                                        t-att-style: Dynamic style berdasarkan match_status
+                                        - matched: hijau
+                                        - status_mismatch: kuning
+                                        - unmatched: merah
+                                    -->
                                     <tr t-foreach="filtered_lines" t-as="line"
                                         t-att-style="'background-color: %s;' % ('#d4edda' if line.match_status == 'matched' else '#fff3cd' if line.match_status == 'status_mismatch' else '#f8d7da')">
+                                        
                                         <td class="text-center"><span t-esc="line_no"/></td>
                                         <td><span t-field="line.barcode"/></td>
                                         <td><span t-field="line.code_product"/></td>
@@ -118,6 +163,8 @@
                                         <td><span t-field="line.match_status"/></td>
                                         <td><span t-field="line.detail_product_status"/></td>
                                         <td><span t-field="line.match_remarks"/></td>
+                                        
+                                        <!-- Increment line number -->
                                         <t t-set="line_no" t-value="line_no + 1"/>
                                     </tr>
                                 </tbody>
@@ -129,15 +176,52 @@
         </t>
     </template>
 
-    <!-- Report Action Definition -->
+    <!-- 
+        Tujuan: Definisi report action untuk generate PDF
+        Report ini bisa dipanggil dari:
+        1. Button Print di form opname
+        2. Export wizard dengan format PDF
+    -->
     <record id="action_report_stock_opname" model="ir.actions.report">
+        <!-- Name: Nama report -->
         <field name="name">Stock Opname Report</field>
+        
+        <!-- Model: Model yang akan di-report -->
         <field name="model">stock.opname</field>
+        
+        <!-- Report Type: qweb-pdf untuk PDF -->
         <field name="report_type">qweb-pdf</field>
+        
+        <!-- Report Name: Reference ke template QWeb -->
         <field name="report_name">product_barcode.report_stock_opname_document</field>
+        
+        <!-- Report File: Nama file internal -->
         <field name="report_file">product_barcode.report_stock_opname_document</field>
+        
+        <!-- Binding: Binding ke model untuk right-click print -->
         <field name="binding_model_id" ref="model_stock_opname"/>
         <field name="binding_type">report</field>
+        
+        <!-- Paper Format: A4 euro -->
         <field name="paperformat_id" ref="base.paperformat_euro"/>
+        
+        <!-- 
+            Note: 
+            Report ini bisa dipanggil dengan 2 cara:
+            
+            1. Dari Python tanpa filter (print langsung):
+               self.env.ref('product_barcode.action_report_stock_opname').report_action(self)
+            
+            2. Dari export wizard dengan filter:
+               self.env['ir.qweb']._render(template, {
+                   'docs': opname,
+                   'data': {
+                       'include_summary': True,
+                       'include_details': True,
+                       'filter_match_status': 'matched',
+                       'filter_product_condition': 'good'
+                   }
+               })
+        -->
     </record>
 </odoo>

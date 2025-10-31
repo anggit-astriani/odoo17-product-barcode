@@ -1,54 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    File View untuk Stock Opname Export Wizard
+    Tujuan: Interface untuk export opname ke Excel atau PDF dengan filtering options
+-->
 <odoo>
-    <!-- Export Wizard Form View -->
+    <!-- Tujuan: Form wizard untuk setup export -->
     <record id="view_stock_opname_export_wizard_form" model="ir.ui.view">
         <field name="name">stock.opname.export.wizard.form</field>
         <field name="model">stock.opname.export.wizard</field>
         <field name="arch" type="xml">
             <form string="Export Stock Opname">
+                <!-- Hanya tampil sebelum export (state != done) -->
                 <group invisible="state == 'done'">
                     <group>
+                        <!-- Opname ID: Readonly, diisi dari context -->
                         <field name="opname_id" readonly="1"/>
+                        
+                        <!-- Export Format: Radio buttons untuk pilih format -->
                         <field name="export_format" widget="radio"/>
                     </group>
+                    
                     <group>
+                        <!-- Checkbox: Include Summary -->
                         <field name="include_summary"/>
+                        
+                        <!-- Checkbox: Include Details -->
                         <field name="include_details"/>
                     </group>
                 </group>
 
+                <!-- Hanya tampil sebelum export (state != done) -->
                 <group string="Filtering Options" invisible="state == 'done'">
                     <group>
+                        <!-- Filter by Match Status -->
+                        <!-- Selection field untuk filter matched/unmatched/all -->
                         <field name="filter_match_status"/>
                     </group>
+                    
                     <group>
+                        <!-- Filter by Product Condition -->
+                        <!-- Selection field untuk filter kondisi produk -->
                         <field name="filter_product_condition"/>
                     </group>
                 </group>
 
+                <!-- Hanya tampil setelah export (state == done) -->
                 <group invisible="state != 'done'">
+                    <!-- 
+                        File Data: Binary field untuk download
+                        filename="file_name" untuk set nama file download
+                    -->
                     <field name="file_data" filename="file_name" readonly="1"/>
+                    
+                    <!-- File Name: Hidden field, hanya untuk reference -->
                     <field name="file_name" invisible="1"/>
                 </group>
 
+                <!-- State: Hidden field untuk conditional visibility -->
                 <field name="state" invisible="1"/>
 
                 <footer>
+                    <!-- 
+                        Button Export: 
+                        - Tampil sebelum export (state != done)
+                        - Trigger action_export untuk generate file
+                    -->
                     <button string="Export" name="action_export" type="object"
                             class="btn-primary" invisible="state == 'done'"/>
+                    
+                    <!-- 
+                        Button Download:
+                        - Tampil setelah export (state == done)
+                        - Trigger action_download untuk download file
+                    -->
                     <button string="Download" name="action_download" type="object"
                             class="btn-primary" invisible="state != 'done'"/>
+                    
+                    <!-- Button Close: Cancel/close wizard -->
                     <button string="Close" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
         </field>
     </record>
 
-    <!-- Action for Export Wizard -->
+    <!-- Tujuan: Action untuk open export wizard -->
     <record id="action_stock_opname_export_wizard" model="ir.actions.act_window">
         <field name="name">Export Stock Opname</field>
         <field name="res_model">stock.opname.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">new</field>  <!-- Open sebagai modal/popup -->
     </record>
 </odoo>

@@ -1,6 +1,7 @@
 from odoo import http, fields
 from odoo.http import request, Response
 import json
+from .utils.auth import authenticate_token
 
 class ApiStockPicking(http.Controller):
 
@@ -209,7 +210,7 @@ class ApiStockPicking(http.Controller):
             json.dumps(response),
             headers=[('Content-Type', 'application/json')]
         )
-        
+
 
     @http.route('/api/inventory/overview', type='http', auth='public', methods=['GET'], csrf=False)
     def get_inventory_overview(self, **params):
@@ -219,7 +220,19 @@ class ApiStockPicking(http.Controller):
         - Internal Transfers
         - Delivery Orders
         Per warehouse + warehouse code.
+        Contoh: GET /api/inventory/overview
         """
+
+        # kode untuk login user, saat ini dimatikan dulu
+        # user = authenticate_token()
+        # if not user:
+        #     return request.make_response(
+        #         json.dumps({
+        #             'status': 401,
+        #             'message': 'Unauthorized: Invalid or expired token'
+        #         }),
+        #         headers=[('Content-Type', 'application/json')]
+        #     )
 
         picking_types = request.env['stock.picking.type'].sudo().search([])
         result = []

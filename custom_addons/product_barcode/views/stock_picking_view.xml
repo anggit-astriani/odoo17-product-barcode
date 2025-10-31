@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+        <!-- record ini untuk inherit view stock picking yang ada pada inventory. -->
+        <!-- pada inventory terdapat beberapa tipe stock picking type -->
+        <!-- (incoming) : untuk receipt, (internal) : untuk internal transfer, dan (outgoing) : untuk delivery order -->
         <record id="view_picking_form_add_detail_product" model="ir.ui.view">
             <field name="name">stock.picking.form.add.detail.product</field>
             <field name="model">stock.picking</field>
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='note']" position="after">
+                    <!-- page detail product pada receipt -->
                     <page string="Detail Product" name="detail_receipt_product_page" id="detail_receipt_product_page" invisible="(picking_type_code != 'incoming') or ('Return of' in (origin or '')) or (state == 'draft')">
                         <div class="oe_button_box mb-3" style="margin-bottom: 10px;">
-
+                            <!-- button generate barcode yang ada pada detail product receipt. function ada pada stock.picking -->
                             <button name="action_generate_barcodes"
                                     string="Generate Barcodes"
                                     type="object"
@@ -18,6 +22,7 @@
                                     help="Generate barcodes berdasarkan quantity di Operations tab"
                                     invisible="state != 'assigned'"/>
                             
+                            <!-- button print barcode yang ada pada detail product receipt. function ada pada stock.picking -->
                             <button name="action_print_all_barcodes"
                                     string="Print All Barcode"
                                     type="object"
@@ -33,26 +38,10 @@
                             <ol style="margin-bottom: 0;">
                                 <li><strong>Step 1:</strong> Klik button "<strong>Generate Barcodes</strong>" untuk membuat barcode otomatis berdasarkan quantity di tab Operations.</li>
                                 <li><strong>Step 2:</strong> Setelah barcode ter-generate, klik button "<strong>Print All Barcode</strong>" untuk print semua barcode sekaligus.</li>
-                                <!-- <li>Barcode yang sudah di-print akan memiliki status "Printed" dan tidak akan di-print ulang.</li> -->
                             </ol>
                         </div>
 
-                        <!-- Button Generate Barcode -->
-                        <div class="oe_button_box mb-3" style="margin-bottom: 10px;">
-                            <button name="action_generate_barcodes"
-                                    string="Generate Barcodes"
-                                    type="object"
-                                    class="oe_stat_button btn-primary"
-                                    icon="fa-barcode"
-                                    help="Generate barcodes berdasarkan quantity di Operations tab"/>
-                        </div>
-                        
-                        <!-- Info Box -->
-                        <div class="alert alert-info" role="alert">
-                            <strong>Generate Barcodes:</strong> Click button di atas untuk generate barcode otomatis 
-                            berdasarkan quantity di tab Operations. Contoh: jika quantity = 3, akan generate 3 barcode berbeda.
-                        </div>
-
+                        <!-- page tree view menggunakan field dari class receipt_product_detail_line_ids -->
                         <field name="receipt_product_detail_line_ids" widget="one2many_list">
                             <tree editable="bottom" create="1" delete="1">
                                 <field name="receipt_id"/>
@@ -62,7 +51,6 @@
                                 <field name="code_product"/>
                                 <field name="purchase_id"/>
                                 <field name="warehouse_id"/>
-                                <!-- <field name="delivery_id"/> -->
                                 <field name="unique_code"/>
                                 <field name="barcode"/>
                                 <!-- <field name="condition"/>
@@ -85,52 +73,46 @@
                         </field>
                     </page>
 
+                    <!-- page detail product pada transfer internal. -->
+                    <!-- page untuk transfer product -->
                     <page string="Transfer Product" name="detail_transfer_product_page" invisible="(picking_type_code != 'internal')">
+                        <!-- page tree view menggunakan field dari class transfer_product_detail_line_ids -->
                         <field name="transfer_product_detail_line_ids" widget="one2many_list" readonly="state != 'draft'">
                             <tree editable="bottom" create="1" delete="1">
                                 <field name="transfer_id"/>
                                 <field name="product_detail_id"/>
-                                <!-- <field name="barcode"/> -->
                                 <field name="product_id"/>
                                 <field name="code_product"/>
                                 <field name="from_warehouse_id"/>
                                 <field name="to_warehouse_id"/>
                                 <field name="status_product"/>
-                                <!-- <button name="action_print_barcode"
-                                        string="Print Barcode"
-                                        type="object"
-                                        icon="fa-print"
-                                        context="{'active_model':'inventory.receipt.product.detail'}"/> -->
                             </tree>
                         </field>
                     </page>
 
+                    <!-- page untuk receive transfer product -->
                     <page string="Receive Transfer Product" name="detail_transfer_receive_product_page" invisible="(picking_type_code != 'internal') or (state == 'draft')">
+                        <!-- page tree view menggunakan field dari class transfer_receive_product_detail_line_ids -->
                         <field name="transfer_receive_product_detail_line_ids" widget="one2many_list" readonly="state != 'assigned'">
                             <tree editable="bottom" create="1" delete="1">
                                 <field name="transfer_id"/>
                                 <field name="product_transfer_id"/>
-                                <!-- <field name="barcode"/> -->
                                 <field name="product_id"/>
                                 <field name="code_product"/>
                                 <field name="from_warehouse_id"/>
                                 <field name="to_warehouse_id"/>
                                 <field name="received_date"/>
-                                <!-- <button name="action_print_barcode"
-                                        string="Print Barcode"
-                                        type="object"
-                                        icon="fa-print"
-                                        context="{'active_model':'inventory.receipt.product.detail'}"/> -->
                             </tree>
                         </field>
                     </page>
 
+                    <!-- page detail product pada delivery order -->
                     <page string="Detail Product" name="detail_delivery_product_page" invisible="(picking_type_code != 'outgoing') or (state == 'draft')">
+                        <!-- page tree view menggunakan field dari class delivery_product_detail_line_ids -->
                         <field name="delivery_product_detail_line_ids" widget="one2many_list" context="{'default_delivery_id': active_id}">
                             <tree editable="bottom" create="1" delete="1">
                                 <field name="delivery_id"/>
                                 <field name="receipt_code_product"/>
-                                <!-- <field name="barcode"/> -->
                                 <field name="product_id"/>
                                 <field name="warehouse_id"/>
                                 <field name="receipt_id"/>

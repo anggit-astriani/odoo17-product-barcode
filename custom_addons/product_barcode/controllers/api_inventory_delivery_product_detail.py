@@ -7,6 +7,15 @@ class ApiInventoryDeliveryProductDetail(http.Controller):
 
     @http.route('/api/delivery/scan-barcode', type='http', auth='public', methods=['POST'], csrf=False)
     def scan_barcode_delivery(self):
+        """
+        Param:
+            POST /api/delivery/scan-barcode
+        Body (JSON):
+        {
+            "delivery_id": "WH/OUT/00026",
+            "barcodes": ["484673445723"]
+        }
+        """
         try:
             # --- Ambil dan parse JSON body ---
             raw_data = request.httprequest.data
@@ -104,6 +113,10 @@ class ApiInventoryDeliveryProductDetail(http.Controller):
         
     @http.route('/api/delivery/detail', type='http', auth='public', methods=['GET'], csrf=False)
     def get_delivery_detail(self, delivery_id=None, **kwargs):
+        """
+        Param:
+            GET /api/delivery/detail?delivery_id=WH/OUT/00020
+        """
         try:
             if not delivery_id:
                 raise ValueError(_("Parameter 'delivery_id' wajib diisi."))
@@ -157,6 +170,15 @@ class ApiInventoryDeliveryProductDetail(http.Controller):
         
     @http.route('/api/delivery/update-stock', type='http', auth='public', methods=['PATCH'], csrf=False)
     def update_status_product_sold(self):
+        """
+        Contoh pemanggilan:
+            PATCH /api/delivery/update-stock
+        Body (JSON):
+        {
+            "delivery_id": "WH/OUT/00026",
+            "barcodes": ["484673445723"]
+        }
+        """
         try:
             # --- Ambil dan parse JSON dari body ---
             raw_data = request.httprequest.data
